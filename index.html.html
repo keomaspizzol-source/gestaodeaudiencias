@@ -1,0 +1,2411 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão Inteligente de Pauta - TJES</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --tjes-blue: #0A2540; 
+            --tjes-blue-light: #1A3C60;
+            --tjes-gold: #c5a059;
+            --bg-body: #f4f7f9;
+            --surface-white: #ffffff;
+            --text-dark: #2d3748;
+            --text-muted: #718096;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --border-color: #e2e8f0;
+            --input-bg: #f8fafc;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.05);
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+
+        body.dark-mode {
+            --tjes-blue: #60a5fa; 
+            --tjes-blue-light: #93c5fd;
+            --bg-body: #111827;
+            --surface-white: #1f2937;
+            --text-dark: #f3f4f6;
+            --text-muted: #9ca3af;
+            --input-bg: #374151;
+            --border-color: #4b5563;
+        }
+
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: var(--bg-body); color: var(--text-dark); margin: 0; padding: 0 0 60px 0; transition: background-color 0.3s, color 0.3s; }
+
+        /* HEADER */
+        .header { background: linear-gradient(135deg, #0A2540, #1A3C60); color: white; text-align: center; padding: 30px 20px 30px; margin-bottom: 30px; position: relative; border-bottom: 4px solid var(--tjes-gold); box-shadow: var(--shadow-md); }
+        body.dark-mode .header { background: linear-gradient(135deg, #0f172a, #1e293b); }
+        .header h1 { font-size: 1.8rem; margin: 0; font-weight: 800; letter-spacing: -0.5px; color: white; }
+        .header h2 { font-size: 1.1rem; font-weight: 600; color: var(--tjes-gold); margin: 8px 0; letter-spacing: 0.5px; }
+        .header p.dev-credits { margin: 0; font-size: 0.95rem; color: #cbd5e1; font-weight: 500; }
+        
+        .top-actions { position: absolute; right: 20px; top: 20px; display: flex; gap: 10px; }
+        .icon-btn { font-size: 1.3rem; cursor: pointer; color: var(--tjes-blue); background: white; border-radius: 50%; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; transition: all 0.3s ease; border: none;}
+        .icon-btn:hover { transform: scale(1.1); color: var(--tjes-gold); box-shadow: var(--shadow-md); }
+        body.dark-mode .icon-btn { background: #374151; color: #f3f4f6; }
+
+        /* Busca Global */
+        .search-bar-container { display: flex; justify-content: center; margin-top: 25px; }
+        .search-bar { position: relative; width: 100%; max-width: 450px; }
+        .search-bar input { width: 100%; padding: 12px 15px 12px 45px; border-radius: 30px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 1rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); outline: none; transition: 0.3s; backdrop-filter: blur(5px); }
+        .search-bar input::placeholder { color: rgba(255,255,255,0.6); }
+        .search-bar input:focus { background: rgba(255,255,255,0.2); box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 0 0 3px rgba(197, 160, 89, 0.4); }
+        .search-bar::before { content: '🔍'; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 1.1rem; color: rgba(255,255,255,0.7); }
+
+        .tabs { display: flex; justify-content: center; margin-bottom: 25px; gap: 12px; flex-wrap: wrap; padding: 0 20px;}
+        .tab-btn { padding: 12px 24px; cursor: pointer; border: none; background: var(--surface-white); color: var(--text-muted); border-radius: var(--radius-md); font-weight: 600; font-size: 0.95rem; transition: all 0.2s; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+        .tab-btn.active { background: var(--tjes-blue); color: white; border-color: var(--tjes-blue); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
+        .tab-btn:hover:not(.active) { filter: brightness(0.95); }
+        
+        .tab-content { display: none; animation: slideUp 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .container { max-width: 900px; margin: 0 auto; background: var(--surface-white); padding: 30px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); }
+
+        .input-section { background: var(--input-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; }
+        .input-section h4 { margin: 0 0 15px 0; color: var(--tjes-blue); font-size: 1rem; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+
+        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .full-width { grid-column: 1 / -1; }
+        
+        label { font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-dark); display: block;}
+        input, select, textarea { width: 100%; padding: 12px 14px; background-color: var(--surface-white); border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; box-sizing: border-box; transition: all 0.2s; color: var(--text-dark); font-family: inherit; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--tjes-blue); box-shadow: 0 0 0 3px rgba(10, 37, 64, 0.1); }
+        body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background-color: var(--input-bg); color: var(--text-dark); }
+
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        button { padding: 14px; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+        button:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        button:active { transform: translateY(0); }
+        
+        .btn-calc { background: linear-gradient(135deg, #0A2540, #1A3C60); color: white; grid-column: 1 / -1; font-size: 1.1rem; padding: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        body.dark-mode .btn-calc { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        
+        .btn-verify { background: var(--surface-white); color: var(--text-dark); border: 1px solid var(--border-color); }
+        .btn-verify-auto { background: #f0fdf4; color: #10b981; border: 1px solid #bbf7d0; font-size: 0.9rem; padding: 8px 16px;}
+        body.dark-mode .btn-verify-auto { background: #064e3b; border-color: #047857; color: #6ee7b7;}
+        
+        .btn-save { background: var(--success); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
+        
+        /* Botões de Ação na Pauta */
+        .btn-google { background: #4285F4; color: white; font-size: 0.85rem; padding: 6px 12px; border: none;}
+        .btn-google:hover { background: #3367D6; }
+        .btn-minuta { background: #fef3c7; color: #b45309; font-size: 0.85rem; padding: 6px 12px; border: none; }
+        body.dark-mode .btn-minuta { background: #78350f; color: #fde68a; }
+        .btn-minuta:hover { background: #fde68a; }
+        
+        .btn-whatsapp { background: #25D366; color: white; font-size: 0.85rem; padding: 8px 14px; border: none; font-weight:bold; }
+        .btn-whatsapp:hover { background: #128C7E; }
+        body.dark-mode .btn-whatsapp { background: #128C7E; color: white; }
+        
+        .btn-mandado { background: #e0e7ff; color: #3730a3; font-size: 0.85rem; padding: 8px 14px; border: none; font-weight:bold;}
+        body.dark-mode .btn-mandado { background: #312e81; color: #c7d2fe; }
+        .btn-mandado:hover { background: #c7d2fe; }
+
+        .btn-cumprimento { background: #10b981; color: white; font-size: 0.85rem; padding: 6px 12px; border: none; }
+        .btn-cumprimento:hover { background: #059669; }
+        body.dark-mode .btn-cumprimento { background: #059669; color: white; }
+
+        .btn-ata { background: #8b5cf6; color: white; font-size: 0.85rem; padding: 8px 14px; border: none; font-weight:bold;}
+        .btn-ata:hover { background: #7c3aed; }
+        body.dark-mode .btn-ata { background: #6d28d9; color: white; }
+        body.dark-mode .btn-ata:hover { background: #5b21b6; }
+
+        .result-card { margin-top: 25px; padding: 25px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: none; position: relative; overflow: hidden; }
+        .result-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--tjes-gold); }
+        .verify-box { background: #fffbeb; border: 1px solid #fde68a; padding: 18px; margin-top: 20px; font-size: 0.9rem; display: none; border-radius: 8px; line-height: 1.6; color: #92400e; }
+        body.dark-mode .verify-box { background: #451a03; border-color: #b45309; color: #fcd34d; }
+        
+        /* Lista Pauta */
+        .pauta-item { background: var(--surface-white); border-left: 4px solid var(--tjes-blue); padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow-sm); border-radius: 8px; position: relative; border: 1px solid var(--border-color); transition: transform 0.2s, box-shadow 0.2s; cursor: grab; }
+        .pauta-item:active { cursor: grabbing; }
+        .pauta-item:hover { box-shadow: var(--shadow-md); }
+        .pauta-item.dragging { opacity: 0.4; background: var(--input-bg); transform: scale(0.98); border: 2px dashed var(--tjes-blue); }
+        body.is-dragging .pauta-item * { pointer-events: none; }
+
+        .pauta-item h4 { margin: 0 0 12px 0; color: var(--tjes-blue); font-size: 1.1rem; padding-right: 360px; pointer-events: none;}
+        .pauta-item ul { margin: 0; padding-left: 20px; color: var(--text-muted); line-height: 1.7; font-size: 0.95rem; pointer-events: auto;}
+        .pauta-item strong { color: var(--text-dark); }
+        
+        .pauta-item.excedente-card { border-left-color: var(--danger); background-color: #fff5f5; border-color: #fecaca; opacity: 0.95;}
+        body.dark-mode .pauta-item.excedente-card { background-color: #450a0a; border-color: #991b1b; }
+        .pauta-item.excedente-card h4 { color: var(--danger); }
+
+        .card-actions { position: absolute; right: 15px; top: 15px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; width: 350px; }
+        .btn-small { padding: 5px 8px; font-size: 0.8rem; border-radius: 6px; font-weight: bold; }
+        .btn-move { background: var(--input-bg); color: var(--text-dark); border: 1px solid var(--border-color); cursor: pointer; }
+        .btn-remove { background: #fee2e2; color: var(--danger); border: none; cursor: pointer; }
+        body.dark-mode .btn-remove { background: #7f1d1d; color: #fca5a5; }
+
+        /* EXCEDENTES */
+        .excedentes-box { margin-top: 35px; background: linear-gradient(145deg, #fff5f5, #fef2f2); border: 1px solid #fecaca; padding: 25px; border-radius: var(--radius-lg); position: relative; overflow: hidden;}
+        body.dark-mode .excedentes-box { background: linear-gradient(145deg, #2a0a0a, #450a0a); border-color: #7f1d1d; }
+        .excedentes-box::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--danger); }
+        .excedentes-box h3 { color: var(--danger); margin-top: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;}
+        
+        /* ESTATÍSTICAS */
+        .stats-panel { margin-top: 35px; padding: 25px; background: var(--tjes-blue); border-radius: var(--radius-lg); color: white; box-shadow: var(--shadow-md); }
+        body.dark-mode .stats-panel { background: #1e293b; border: 1px solid #334155; }
+        .stats-panel h3 { margin: 0 0 20px 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; color: var(--tjes-gold); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .stat-card { background: rgba(255,255,255,0.08); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-card h5 { margin: 0 0 10px 0; font-size: 0.85rem; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card p { margin: 0; font-size: 1.8rem; font-weight: 800; color: white; line-height: 1; }
+        .stat-card span { font-size: 0.9rem; font-weight: 600; color: var(--tjes-gold); display: block; margin-top: 5px; }
+
+        .mini-chart { margin-top: 5px; display: flex; flex-direction: column; gap: 8px; }
+        .chart-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; }
+        .chart-label { width: 42%; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #cbd5e1; }
+        .chart-bar-container { background: rgba(255,255,255,0.1); height: 14px; border-radius: 4px; position: relative; }
+        .chart-bar-fill { background: var(--tjes-gold); height: 100%; border-radius: 4px; min-width: 5%; transition: width 0.5s ease;}
+        .chart-count-label { font-size: 0.75rem; font-weight: 800; color: var(--tjes-blue); background: #f8fafc; padding: 2px 6px; border-radius: 10px; margin-left: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.3); line-height: 1;}
+
+        .pauta-controls { background: var(--input-bg); padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; border: 1px solid var(--border-color); justify-content: space-between;}
+
+        /* MODAIS POPUPS */
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(3px); animation: fadeIn 0.2s; padding:20px; box-sizing:border-box;}
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-content { background: var(--surface-white); padding: 25px; border-radius: var(--radius-lg); width: 100%; max-width: 480px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); transform: scale(0.95); animation: scaleUp 0.2s forwards; max-height: 90vh; overflow-y: auto;}
+        @keyframes scaleUp { to { transform: scale(1); } }
+        
+        .custom-modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .cm-icon { font-size: 1.8rem; }
+        .custom-modal-title { margin: 0; color: var(--tjes-blue); font-size: 1.25rem; font-weight: 700; }
+        body.dark-mode .custom-modal-title { color: white; }
+        .custom-modal-body { color: var(--text-dark); font-size: 0.95rem; line-height: 1.6; margin-bottom: 25px; white-space: pre-wrap;}
+        .custom-modal-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;}
+        .cm-btn-cancel { background: var(--input-bg); color: var(--text-dark); border: 1px solid var(--border-color); cursor: pointer; padding: 10px 15px; border-radius: 6px; font-weight: bold;}
+        .cm-btn-confirm { background: var(--tjes-blue); color: white; cursor: pointer; padding: 10px 15px; border-radius: 6px; font-weight: bold; border: none;}
+        .cm-btn-danger { background: var(--danger); color: white; cursor: pointer; padding: 10px 15px; border-radius: 6px; font-weight: bold; border: none;}
+
+        .editable-div {
+            background: var(--surface-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 250px;
+            max-height: 400px;
+            overflow-y: auto;
+            color: var(--text-dark);
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+        }
+        body.dark-mode .editable-div { background: var(--input-bg); color: #f3f4f6; }
+
+        /* FORMULÁRIO DE CUMPRIMENTO */
+        .cump-section { background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .cump-section h5 { margin: 0 0 12px 0; color: var(--tjes-gold); font-size: 0.95rem; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;}
+        .pessoa-block { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; align-items: center; background: var(--surface-white); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); }
+        @media (max-width: 768px) { .pessoa-block { grid-template-columns: 1fr; } }
+        .pessoa-block input, .pessoa-block select, .pessoa-block textarea { padding: 8px; font-size: 0.85rem; }
+        .btn-add-pessoa { background: #e2e8f0; color: var(--text-dark); border: 1px dashed var(--text-muted); padding: 8px 15px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; margin-right: 10px;}
+        body.dark-mode .btn-add-pessoa { background: #374151; color: white; }
+
+        /* Calendário Específico */
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-weight: 800; color: var(--tjes-blue); font-size: 1.1rem;}
+        body.dark-mode .cal-header { color: white; }
+        .cal-btn { background: var(--input-bg); border: none; border-radius: 6px; padding: 8px 12px; cursor: pointer; font-weight: bold; color: var(--text-dark);}
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
+        .cal-day-header { font-weight: 700; font-size: 0.8rem; color: var(--text-muted); padding-bottom: 5px;}
+        .cal-day { padding: 12px 0; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; font-weight: 600; font-size: 0.95rem; }
+        .cal-day:hover:not(.other-month) { border-color: var(--tjes-blue); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+        .cal-day.status-fechada { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+        body.dark-mode .cal-day.status-fechada { background: #7f1d1d; border-color: #ef4444; color: #fca5a5; }
+        .cal-day.status-parcial { background: #dcfce7; border-color: #86efac; color: #166534; }
+        body.dark-mode .cal-day.status-parcial { background: #14532d; border-color: #22c55e; color: #86efac; }
+        .cal-day.other-month { opacity: 0.3; pointer-events: none; border: none; background: transparent; }
+        .cal-day.selected { outline: 2px solid var(--tjes-blue); outline-offset: 2px; }
+        
+        .cal-legend { display: flex; gap: 15px; font-size: 0.8rem; margin-top: 20px; flex-wrap: wrap; justify-content: center; color: var(--text-muted);}
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 4px; }
+        
+        /* TOAST DE LIXEIRA */
+        .toast-undo { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--tjes-blue); color: white; padding: 15px 25px; border-radius: 30px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 15px; z-index: 10000; transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-size: 0.95rem; font-weight: 500; border: 1px solid rgba(255,255,255,0.1);}
+        body.dark-mode .toast-undo { background: #1e293b; border: 1px solid #4b5563; }
+        .toast-undo.show { bottom: 30px; }
+        .btn-desfazer { background: var(--tjes-gold); color: white; border: none; padding: 8px 18px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .btn-desfazer:hover { filter: brightness(1.1); transform: scale(1.05); }
+
+        /* Configurações Refinadas */
+        .config-section { margin-bottom: 25px; padding: 20px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--input-bg);}
+        .config-section h4 { margin-top: 0; color: var(--tjes-blue); padding-bottom: 10px; border-bottom: 2px solid var(--tjes-gold); font-size: 1.05rem; display: flex; align-items: center; gap: 8px;}
+        .config-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+
+        .crime-list { max-height: 250px; overflow-y: auto; background: var(--surface-white); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; margin-top: 15px; }
+        .crime-list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--border-color); font-size: 0.9rem;}
+        .crime-list-item:last-child { border-bottom: none; }
+        .crime-list-item span { font-weight: 600; color: var(--tjes-blue); }
+
+        /* RODAPÉ REMODELADO */
+        .footer { background: var(--tjes-blue); color: white; text-align: center; padding: 25px 20px; font-size: 0.95rem; border-top: 4px solid var(--tjes-gold); margin-top: 40px;}
+        body.dark-mode .footer { background: #0f172a; border-top-color: #b45309; }
+        
+        @media print {
+            body { background: white; padding: 0; color: black !important;}
+            .header { background: white; color: black; border-bottom: 2px solid black; box-shadow: none; padding: 10px;}
+            .header h1 { color: black; }
+            .header h2, .header p { color: #333; }
+            .tabs, .top-actions, .search-bar-container, .btn-verify, .btn-verify-auto, .config-section, .btn-group, .pauta-controls, .modal-backdrop, .stats-panel, .footer, .toast-undo { display: none !important; }
+            .container { box-shadow: none; width: 100%; padding: 0; border: none;}
+            .card-actions { display: none !important; }
+            .pauta-item { border: 1px solid #ccc !important; break-inside: avoid; padding-right: 15px !important; margin-bottom: 10px; background: white !important; cursor: auto;}
+            .pauta-item h4 { padding-right: 0; color: black !important; }
+            .excedentes-box { border: 1px solid black !important; background: white !important;}
+        }
+        @media (max-width: 600px) { .grid-inputs { grid-template-columns: 1fr; } }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <div class="header">
+        <div class="top-actions">
+            <button class="icon-btn" onclick="toggleTema()" title="Alternar Modo Escuro / Claro" id="btn-theme">🌓</button>
+            <button class="icon-btn" onclick="openTab('config')" title="Configurações Avançadas">⚙️</button>
+        </div>
+        
+        <h1>Tribunal de Justiça do Estado do Espírito Santo</h1>
+        <h2>Gestão Inteligente de Pauta de Audiências Criminais</h2>
+        <p class="dev-credits">Desenvolvido por <strong>Keomas Leali Pizzol</strong> - Assessor de Juiz</p>
+
+        <div class="search-bar-container">
+            <div class="search-bar">
+                <input type="text" id="busca-global" placeholder="Pesquisar número de processo..." onkeyup="buscarProcesso(event)">
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button id="btn-tab-calc" class="tab-btn active" onclick="openTab('calc')">✏️ Nova Designação</button>
+        <button id="btn-tab-pauta" class="tab-btn" onclick="openTab('pauta')">📅 Pauta (<span id="count-pauta">0</span>)</button>
+    </div>
+
+    <div class="container">
+        
+        <div id="calc" class="tab-content active">
+            <div class="input-section">
+                <h4>📄 Dados Gerais do Processo</h4>
+                <div class="grid-inputs">
+                    <div class="form-group">
+                        <label>Número do Processo:</label>
+                        <input type="text" id="processo" placeholder="Ex: 0000000-00.2024">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Audiência:</label>
+                        <select id="tipo_audiencia">
+                            <option value="Instrução e Julgamento">⚖️ Instrução e Julgamento</option>
+                            <option value="Continuação">🔄 Continuação</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Tipo Penal Principal (Automático via Configurações):</label>
+                        <select id="crime"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Defesa:</label>
+                        <select id="defesa">
+                            <option value="Constituída">💼 Constituída</option>
+                            <option value="Nomeada">🧑‍⚖️ Nomeada</option>
+                            <option value="Defensoria">🏛️ Defensoria Pública</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Réu Preso?</label>
+                        <select id="preso">
+                            <option value="NÃO">Não</option>
+                            <option value="SIM">🔒 Sim</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <h4>👥 Oitivas e Partes</h4>
+                <div class="grid-inputs">
+                    <div class="form-group"><label>Nº Réus (Interrogatórios):</label><input type="number" id="reus" value="1" min="0"></div>
+                    <div class="form-group"><label>Nº Vítimas (Oitivas):</label><input type="number" id="vitimas" value="1" min="0"></div>
+                    <div class="form-group"><label>Nº Testemunhas (Oitivas):</label><input type="number" id="testemunhas" value="0" min="0"></div>
+                    <div class="form-group"><label>Tempo Extra (J - minutos):</label><input type="number" id="adicional" value="0" min="0"></div>
+                </div>
+            </div>
+
+            <button class="btn-calc" onclick="calcularTudo()">⏳ CALCULAR TEMPO PREVISTO</button>
+
+            <div id="resultado" class="result-card">
+                <div style="text-align: center;">
+                    <span id="res-complex" style="display:block; font-weight:700; text-transform:uppercase; color:var(--tjes-blue); margin-bottom:8px; font-size:1.1rem;">-</span>
+                    <span id="res-tempo" style="font-size: 2.8rem; font-weight: 800; color: var(--danger); line-height: 1;">-- min</span>
+                    <p style="margin:8px 0 20px; font-size:0.85rem; color:var(--text-muted); font-weight:500;">(Tempo ajustado para múltiplo de 5)</p>
+                </div>
+                
+                <div style="background: var(--surface-white); padding: 15px; border-radius: 8px; border: 1px dashed var(--tjes-gold); text-align: center; margin-bottom: 15px; box-shadow: var(--shadow-sm);">
+                    <label style="display:inline-block; margin-right: 10px; color: var(--text-dark); font-size:0.95rem;">🗓️ <strong>Data da Audiência:</strong></label>
+                    <input type="date" id="data_pauta_calc" onchange="sincronizarInputData(this.value)" style="max-width: 200px; display: inline-block;">
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn-verify" onclick="toggleVerify()">🔍 Memória de Cálculo</button>
+                    <button class="btn-save" onclick="iniciarSalvamentoNaPauta()">💾 Guardar na Pauta</button>
+                </div>
+                
+                <div id="verify-box" class="verify-box"></div>
+            </div>
+        </div>
+
+        <div id="pauta" class="tab-content">
+            
+            <div class="pauta-controls">
+                <button onclick="abrirCalendario()" class="btn-verify" style="padding: 10px 15px; border-radius: 6px; font-weight:bold; border-color:var(--tjes-blue); color:var(--tjes-blue);">📅 Abrir Calendário de Pautas</button>
+                
+                <input type="date" id="data_pauta" style="display:none;">
+
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button onclick="forcarOrdenacaoAutomatica()" class="btn-verify-auto" title="Reorganizar de acordo com a regra configurada">✨ Auto-Ordenar</button>
+                    
+                    <button onclick="exportarDia()" class="btn-verify" style="padding: 10px 15px; border-radius: 6px;" title="Exportar dados estruturados do dia">⬇️ Exportar Pauta do Dia</button>
+                    <button onclick="document.getElementById('import-dia-input').click()" class="btn-verify" style="padding: 10px 15px; border-radius: 6px;" title="Importar dados estruturados">⬆️ Importar Pauta do Dia</button>
+                    <input type="file" id="import-dia-input" style="display:none" accept=".json" onchange="importarDia(event)">
+                    
+                    <button onclick="exportarPautaCompletaDoc()" class="btn-google" style="padding: 10px 15px; border-radius: 6px; background:#475569;" title="Exportar Relatórios de Cumprimento de toda a Pauta">📄 Exportar Relatórios Diários (Doc)</button>
+                    
+                    <button onclick="copiarParaAreaDeTransferencia()" class="btn-verify" style="padding: 10px 15px; border-radius: 6px;" title="Copiar Tabela para colar no Word ou Excel">📋 Copiar Tabela</button>
+                    <button onclick="window.print()" class="btn-verify" style="padding: 10px 15px; border-radius: 6px;">🖨️ Imprimir</button>
+                </div>
+            </div>
+            
+            <h3 id="pauta-header-title" style="color:var(--tjes-blue); margin: 0 0 15px 0; font-size: 1.2rem; border-bottom: 2px solid var(--border-color); padding-bottom:10px;">Pauta Estruturada</h3>
+
+            <div id="lista-pauta">
+                <p style="text-align:center; color:var(--text-muted); padding: 40px 0;">Nenhuma audiência marcada para este dia.<br>Use o separador Nova Designação.</p>
+            </div>
+
+            <div id="excedentes-container" class="excedentes-box" style="display:none;">
+                <h3>⚠️ Processos Excedentes (Para Remarcação)</h3>
+                <p id="excedentes-msg" style="font-size:0.9rem; color:var(--danger); margin-top:-10px; margin-bottom:15px; opacity:0.8;">Os processos abaixo não couberam na janela configurada. Podem ser arrastados para cima caso deseje priorizá-los.</p>
+                <div id="lista-excedentes"></div>
+            </div>
+
+            <div class="stats-panel">
+                <h3>📊 Produtividade do Mês Selecionado (<span id="stats-mes-nome"></span>)</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h5>Audiências</h5>
+                        <p id="stat-audiencias">0</p>
+                        <span>Marcadas neste mês</span>
+                    </div>
+                    <div class="stat-card">
+                        <h5>Tempo Gerado</h5>
+                        <p id="stat-horas">0h</p>
+                        <span>Horas de pauta</span>
+                    </div>
+                    <div class="stat-card" style="text-align: left;">
+                        <h5 style="text-align:center; margin-bottom:5px;">Tipos Penais Mais Frequentes</h5>
+                        <div id="stat-crime-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="config" class="tab-content">
+            <h3 style="color:var(--tjes-blue); margin-top:0;">⚙️ Configurações e Parâmetros da Vara</h3>
+            <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 25px;">Ajuste a ordem, tempos, complexidade e cadastre novos tipos penais e modelos. Clique em "Guardar Configurações no Navegador" no final.</p>
+            
+            <div class="config-section" style="border-top: 3px solid var(--tjes-gold);">
+                <h4>🏛️ 1. Configurações Gerais do Gabinete</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0; margin-bottom:15px; line-height: 1.5;"><strong>Funcionalidade:</strong> Define as autoridades oficiais que constarão nas exportações de Atas e relatórios de cumprimento.</p>
+                <div class="grid-inputs">
+                    <div class="form-group">
+                        <label>Nome do Magistrado(a):</label>
+                        <input type="text" id="cfg-nome-juiz" placeholder="Ex: Dr. João da Silva">
+                    </div>
+                    <div class="form-group">
+                        <label>Nome do Promotor(a) de Justiça:</label>
+                        <input type="text" id="cfg-nome-promotor" placeholder="Ex: Dra. Maria Souza">
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h4>📅 2. Horários e Regra de Ordenação da Pauta</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0; margin-bottom:15px; line-height: 1.5;"><strong>Funcionalidade:</strong> Define a janela de expediente da Vara para cálculo do limite (Pauta Fechada) e a lógica automática de arrumação dos processos.</p>
+                <div class="grid-inputs" style="margin-bottom: 15px;">
+                    <div class="form-group full-width">
+                        <label>Como organizar automaticamente a pauta?</label>
+                        <select id="cfg-ordem-pauta" onchange="forcarOrdenacaoAutomatica()">
+                            <option value="simples_complexa">Da mais Simples para a mais Complexa (Padrão)</option>
+                            <option value="ordem_lancamento">Ordem de Lançamento (Não reordenar automaticamente)</option>
+                            <option value="agrupar_crime">Agrupar por Crime e depois por Complexidade</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="config-grid">
+                    <div class="form-group"><label>Início da Pauta:</label><input type="time" id="cfg-hora-inicio" value="12:00" onchange="renderizarPauta()"></div>
+                    <div class="form-group"><label>Limite Final (Teto):</label><input type="time" id="cfg-hora-fim" value="18:00" onchange="renderizarPauta()"></div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h4>⏳ 3. Variáveis de Tempo (Minutos)</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0; margin-bottom:15px; line-height: 1.5;"><strong>Efeito:</strong> Define os <strong>minutos reais</strong> que serão somados para gerar o tempo da audiência. O "Tempo Base" é ativado conforme a complexidade.</p>
+                <div class="config-grid">
+                    <div class="form-group"><label>Base Muito Complexo:</label><input type="number" id="cfg-t-mc" value="40"></div>
+                    <div class="form-group"><label>Base Complexo:</label><input type="number" id="cfg-t-c" value="25"></div>
+                    <div class="form-group"><label>Base Médio:</label><input type="number" id="cfg-t-m" value="15"></div>
+                    <div class="form-group"><label>Base Simples:</label><input type="number" id="cfg-t-s" value="10"></div>
+                    <div class="form-group"><label>Constante (Final):</label><input type="number" id="cfg-t-fixo" value="5"></div>
+                    
+                    <div class="form-group"><label>Minutos/Réu:</label><input type="number" id="cfg-k-reu" value="7"></div>
+                    <div class="form-group"><label>Minutos/Vítima:</label><input type="number" id="cfg-k-vit" value="7"></div>
+                    <div class="form-group"><label>Minutos/Testem.:</label><input type="number" id="cfg-k-tes" value="5"></div>
+                    <div class="form-group"><label>Min. Def. Constituída:</label><input type="number" id="cfg-k-bonus-c" value="7"></div>
+                    <div class="form-group"><label>Min. Réu Preso:</label><input type="number" id="cfg-k-bonus-p" value="5"></div>
+                    <div class="form-group"><label style="color:var(--danger);">Desc. Continuação (-):</label><input type="number" id="cfg-k-desconto-cont" value="15"></div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h4>⚖️ 4. Lista de Tipos Penais e Pesos (Gestão Dinâmica)</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0; margin-bottom:15px; line-height: 1.5;"><strong>Efeito:</strong> Os "Pontos" <strong>não são minutos</strong>. São pesos atribuídos a cada delito que, somados aos fatores de Defesa, definirão a complexidade.</p>
+                <div style="display:flex; gap:10px; align-items:flex-end;">
+                    <div class="form-group" style="flex-grow:1; margin-bottom:0;">
+                        <label>Nome do Tipo Penal:</label>
+                        <input type="text" id="novo-crime-nome" placeholder="Ex: Tráfico Internacional">
+                    </div>
+                    <div class="form-group" style="width:120px; margin-bottom:0;">
+                        <label>Pontos:</label>
+                        <input type="number" id="novo-crime-pts" value="10">
+                    </div>
+                    <button type="button" id="btn-add-crime" class="btn-verify-auto" style="margin-bottom:0; height:45px;" onclick="adicionarCrime()">➕ Adicionar</button>
+                </div>
+                <div class="crime-list" id="lista-crimes-dinamica"></div>
+            </div>
+
+            <div class="config-section">
+                <h4>👤 5. Pontuação das Partes e Defesa (Col H)</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0; margin-bottom:15px; line-height: 1.5;"><strong>Efeito:</strong> Atribui "pesos" (pontos) extras baseados no tipo de defesa e situação do réu para atingir as faixas de complexidade.</p>
+                <div class="config-grid">
+                    <div class="form-group"><label>Pts Def. Constituída:</label><input type="number" id="cfg-h-def-c" value="30"></div>
+                    <div class="form-group"><label>Pts Def. Nomeada:</label><input type="number" id="cfg-h-def-n" value="15"></div>
+                    <div class="form-group"><label>Pts Defensoria Pública:</label><input type="number" id="cfg-h-def-d" value="0"></div>
+                    <div class="form-group"><label>Pts Réu Preso:</label><input type="number" id="cfg-h-preso" value="20"></div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h4>📈 6. Variáveis de Complexidade (Limites de Pontos)</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0; margin-bottom:15px; line-height: 1.5;"><strong>Efeito:</strong> O sistema soma a pontuação para definir em qual faixa o processo se encaixa, acionando o <strong>Tempo Base</strong> correspondente.</p>
+                <div class="config-grid">
+                    <div class="form-group"><label>Muito Complexo (> pts):</label><input type="number" id="cfg-i-mc" value="108"></div>
+                    <div class="form-group"><label>Complexo (>= pts):</label><input type="number" id="cfg-i-c" value="74"></div>
+                    <div class="form-group"><label>Médio (>= pts):</label><input type="number" id="cfg-i-m" value="48"></div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h4>📝 7. Modelos de Minutas (Despachos e Decisões)</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0; margin-bottom:15px; line-height: 1.5;"><strong>Funcionalidade:</strong> Cadastre modelos de texto para gerar rapidamente minutas. Variável disponível: <strong>[adicionar data e hora constante da pauta]</strong>.</p>
+                <div class="form-group">
+                    <label>Título do Modelo:</label>
+                    <input type="text" id="nova-minuta-titulo" placeholder="Ex: Despacho de Designação Simples">
+                </div>
+                <div class="form-group" style="margin-top:10px;">
+                    <label>Texto do Modelo:</label>
+                    <textarea id="nova-minuta-texto" rows="4" placeholder="Insira o texto do despacho/decisão aqui..."></textarea>
+                </div>
+                <button type="button" id="btn-add-minuta" class="btn-verify-auto" style="margin-top:15px;" onclick="adicionarMinuta()">➕ Adicionar Modelo de Minuta</button>
+                <div class="crime-list" id="lista-minutas-dinamica"></div>
+            </div>
+
+            <div class="config-section">
+                <h4>💬 8. Modelos de Avisos para WhatsApp</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0; margin-bottom:15px; line-height: 1.5;"><strong>Funcionalidade:</strong> Cadastre mensagens para Intimações Rápidas. <br>Variáveis disponíveis: <strong>[processo]</strong>, <strong>[data]</strong> e <strong>[hora]</strong>.</p>
+                <div class="form-group">
+                    <label>Título da Mensagem:</label>
+                    <input type="text" id="novo-wp-titulo" placeholder="Ex: Aviso Geral para Advogados">
+                </div>
+                <div class="form-group" style="margin-top:10px;">
+                    <label>Texto da Mensagem:</label>
+                    <textarea id="novo-wp-texto" rows="4" placeholder="Ex: Olá! A audiência do processo [processo] será no dia [data], às [hora]."></textarea>
+                </div>
+                <button type="button" id="btn-add-wp" class="btn-verify-auto" style="margin-top:15px; color:#166534; border-color:#22c55e;" onclick="adicionarWhatsApp()">➕ Adicionar Modelo de WhatsApp</button>
+                <div class="crime-list" id="lista-whatsapp-dinamica"></div>
+            </div>
+
+            <div class="config-section">
+                <h4>📜 9. Modelos de Mandados de Intimação</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0; margin-bottom:15px; line-height: 1.5;"><strong>Funcionalidade:</strong> Cadastre textos para expedição rápida de Mandados. <br>Variável disponível: <strong>[adicionar data e hora constante da pauta]</strong>.</p>
+                <div class="form-group">
+                    <label>Título do Mandado:</label>
+                    <input type="text" id="novo-mandado-titulo" placeholder="Ex: Mandado de Intimação de Testemunha">
+                </div>
+                <div class="form-group" style="margin-top:10px;">
+                    <label>Texto do Mandado:</label>
+                    <textarea id="novo-mandado-texto" rows="4" placeholder="Insira o texto padrão do mandado aqui..."></textarea>
+                </div>
+                <button type="button" id="btn-add-mandado" class="btn-verify-auto" style="margin-top:15px; color:#3730a3; border-color:#c7d2fe; background:#e0e7ff;" onclick="adicionarMandado()">➕ Adicionar Modelo de Mandado</button>
+                <div class="crime-list" id="lista-mandados-dinamica"></div>
+            </div>
+
+            <div class="config-section">
+                <h4>📄 10. Modelos de Atas de Audiência</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0; margin-bottom:15px; line-height: 1.5;"><strong>Funcionalidade:</strong> Cadastre modelos para o termo de audiência.<br>
+                Variáveis disponíveis: <strong>[processo]</strong>, <strong>[crime]</strong>, <strong>[tipo_audiencia]</strong>, <strong>[artigo]</strong>, <strong>[bu]</strong>, <strong>[data]</strong>, <strong>[hora]</strong>, <strong>[data_hora]</strong>, <strong>[juiz]</strong>, <strong>[promotor]</strong>, <strong>[advogado]</strong>, <strong>[tipo_advogado]</strong>, <strong>[reus]</strong>, <strong>[reus_enderecos]</strong>, <strong>[reus_telefones]</strong>, <strong>[vitimas]</strong>, <strong>[vitimas_enderecos]</strong>, <strong>[vitimas_telefones]</strong>, <strong>[testemunhas]</strong>, <strong>[testemunhas_enderecos]</strong>, <strong>[testemunhas_telefones]</strong>, <strong>[denuncia]</strong>, <strong>[defesa_previa]</strong>, <strong>[antecedentes]</strong>, <strong>[laudo]</strong>.</p>
+                <div class="form-group">
+                    <label>Título da Ata:</label>
+                    <input type="text" id="nova-ata-titulo" placeholder="Ex: Ata Padrão Completa">
+                </div>
+                <div class="form-group" style="margin-top:10px;">
+                    <label>Texto da Ata:</label>
+                    <textarea id="nova-ata-texto" rows="6" placeholder="Insira o texto base da ata aqui..."></textarea>
+                </div>
+                <button type="button" id="btn-add-ata" class="btn-verify-auto" style="margin-top:15px; color:#6d28d9; border-color:#c4b5fd; background:#f5f3ff;" onclick="adicionarAta()">➕ Adicionar Modelo de Ata</button>
+                <div class="crime-list" id="lista-atas-dinamica"></div>
+            </div>
+            
+            <div class="config-section" style="border-color: var(--tjes-blue); background: rgba(10,37,64,0.02);">
+                <h4>🛡️ 11. Segurança e Backup do Sistema</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0; margin-bottom:15px; line-height: 1.5;"><strong>Funcionalidade:</strong> Exporte todo o seu banco de dados num ficheiro para transferir de computador ou guardar como cópia de segurança física.</p>
+                <div style="display:flex; gap:15px; flex-wrap:wrap;">
+                    <button class="btn-verify" style="flex-grow:1; border-color:var(--tjes-blue); color:var(--tjes-blue);" onclick="exportarBancoDados()">⬇️ Exportar Backup do Sistema (.json)</button>
+                    <button class="btn-verify" style="flex-grow:1;" onclick="document.getElementById('import-db-total').click()">⬆️ Importar Backup</button>
+                    <input type="file" id="import-db-total" style="display:none" accept=".json" onchange="importarBancoDados(event)">
+                </div>
+            </div>
+
+            <div style="display:flex; gap:15px; margin-top: 30px;">
+                <button class="btn-save" style="flex-grow:1; border-radius: 8px; font-size:1.1rem; padding: 16px;" onclick="salvarConfiguracoesLocal()">💾 Guardar Configurações na Nuvem</button>
+                <button class="btn-verify" style="border-radius: 8px; color: var(--danger); border-color: var(--danger);" onclick="restaurarPadroes()">↺ Restaurar Padrões Iniciais</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        <strong>Tribunal de Justiça do Estado do Espírito Santo</strong><br>
+        <span style="opacity: 0.9; font-size: 0.85rem; display: block; margin-top: 5px;">2ª Secretaria Inteligente - Afonso Cláudio (ES)</span>
+    </div>
+
+    <div id="toast-undo" class="toast-undo">
+        <span>🗑️ Processo removido da pauta.</span>
+        <button class="btn-desfazer" onclick="desfazerExclusao()">↩️ Desfazer</button>
+    </div>
+
+    <div id="modal-calendario" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="cal-header">
+                <button class="cal-btn" onclick="mudarMesCalendario(-1)">❮</button>
+                <span id="cal-mes-ano">DEZEMBRO 2024</span>
+                <button class="cal-btn" onclick="mudarMesCalendario(1)">❯</button>
+            </div>
+            <div class="cal-grid">
+                <div class="cal-day-header">D</div><div class="cal-day-header">S</div><div class="cal-day-header">T</div><div class="cal-day-header">Q</div>
+                <div class="cal-day-header">Q</div><div class="cal-day-header">S</div><div class="cal-day-header">S</div>
+            </div>
+            <div id="cal-dias" class="cal-grid"></div>
+            <div class="cal-legend">
+                <div class="legend-item"><div class="legend-color" style="background:#dcfce7; border:1px solid #86efac;"></div> Pauta Aberta (Com Vaga)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#fee2e2; border:1px solid #fca5a5;"></div> Pauta Fechada (Limite Atingido)</div>
+                <div class="legend-item"><div class="legend-color" style="background:var(--surface-white); border:1px solid var(--border-color);"></div> Pauta Livre</div>
+            </div>
+            <button onclick="fecharCalendario()" style="width:100%; margin-top:20px; border-radius:8px; background: var(--danger); color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer;">Fechar Calendário</button>
+        </div>
+    </div>
+
+    <div id="modal-cumprimento" class="modal-backdrop">
+        <div class="modal-content" style="max-width: 850px; text-align: left; max-height: 90vh; overflow-y: auto;">
+            <div class="custom-modal-header" style="justify-content: space-between; flex-wrap:wrap; gap:15px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div class="cm-icon">✅</div>
+                    <h3 class="custom-modal-title">Painel de Cumprimento</h3>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="btn-small btn-whatsapp" onclick="abrirWhatsAppDoCumprimento()" title="Gerar WhatsApp para este processo">💬 WhatsApp</button>
+                    <button class="btn-small btn-mandado" onclick="abrirMandadoDoCumprimento()" title="Gerar Mandado para este processo">📜 Mandado</button>
+                    <button class="btn-small btn-ata" onclick="abrirModalAta()" title="Gerar Ata de Audiência">📝 Gerar Ata</button>
+                    <button class="btn-small" style="background:#475569; color:white; border:none;" onclick="abrirModalRelatorio()" title="Editar e Exportar Relatório Oficial do Processo">📄 Relatório (Doc)</button>
+                </div>
+            </div>
+            
+            <div class="cump-section" style="margin-top:10px;">
+                <h5>📌 IDENTIFICAÇÃO DO FEITO</h5>
+                <div class="grid-inputs">
+                    <div class="form-group"><label>Artigo Penal (Ex: art. 50 LCP):</label><input type="text" id="cump-artigo"></div>
+                    <div class="form-group"><label>Nº Boletim de Ocorrência (BU):</label><input type="text" id="cump-bu"></div>
+                </div>
+            </div>
+
+            <div class="cump-section">
+                <h5>⚖️ MINISTÉRIO PÚBLICO E DEFESA</h5>
+                <div class="grid-inputs">
+                    <div class="form-group full-width" style="display:flex; gap:10px;">
+                        <div style="flex-grow:1;"><label>Status de Intimação do MP (Ex: INTIMADO CONFORME ID 12345):</label><input type="text" id="cump-mp-status" placeholder="Ex: INTIMADO CONFORME EXPEDIENTE 16760267"></div>
+                    </div>
+                    <div class="form-group"><label>Tipo de Defesa:</label>
+                        <select id="cump-adv-tipo">
+                            <option value="Constituída">Advogado Constituído</option>
+                            <option value="Dativo / Nomeado">Advogado Dativo / Nomeado</option>
+                            <option value="da Defensoria Pública">Defensoria Pública</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Nome e OAB:</label><input type="text" id="cump-adv-nome" placeholder="Ex: João Silva, OAB/ES 12345"></div>
+                    <div class="form-group full-width"><label>Status / ID de Nomeação ou Intimação da Defesa:</label><input type="text" id="cump-adv-status" placeholder="Ex: NOMEADO EM ID 94857411 - INTIMADO CONFORME EXPEDIENTE 16931222"></div>
+                </div>
+            </div>
+
+            <div class="cump-section">
+                <h5>👥 PARTES E TESTEMUNHAS</h5>
+                <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                    <button class="btn-add-pessoa" onclick="addCumpPessoa('Réu')">+ Adicionar Réu</button>
+                    <button class="btn-add-pessoa" onclick="addCumpPessoa('Vítima')">+ Adicionar Vítima</button>
+                    <button class="btn-add-pessoa" onclick="addCumpPessoa('Testemunha')">+ Adicionar Testemunha</button>
+                </div>
+                <div id="cump-pessoas-container">
+                    </div>
+            </div>
+
+            <div class="cump-section">
+                <h5>📂 PEÇAS PROCESSUAIS</h5>
+                <div class="grid-inputs">
+                    <div class="form-group"><label>Denúncia (ID e Págs):</label><input type="text" id="cump-denuncia" placeholder="Ex: ID 47895644, pág. 1"></div>
+                    <div class="form-group"><label>Defesa Prévia (ID):</label><input type="text" id="cump-defesa-previa" placeholder="Ex: ID 92480530"></div>
+                    <div class="form-group"><label>Antecedentes Criminais (ID):</label><input type="text" id="cump-antecedentes-id" placeholder="Ex: ID 95695264"></div>
+                    <div class="form-group"><label>Laudo Pericial (ID e Págs):</label><input type="text" id="cump-laudo-id" placeholder="Ex: ID 47895644, pág. 16-22"></div>
+                </div>
+            </div>
+
+            <div class="cump-section">
+                <h5>⚠️ OBSERVAÇÕES E ALERTAS DE PAUTA</h5>
+                <textarea id="cump-obs" rows="3" placeholder="Informações que devem sair destacadas. Ex: MANDAR MENSAGEM NO WHATSAPP PARA MILITARES"></textarea>
+            </div>
+
+            <div class="custom-modal-actions" style="margin-top:20px;">
+                <button class="cm-btn-cancel" onclick="fecharModalCumprimento()">Cancelar</button>
+                <button class="cm-btn-confirm" onclick="salvarCumprimento()">💾 Guardar Dados</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-relatorio" class="modal-backdrop" style="z-index: 10001;">
+        <div class="modal-content" style="max-width: 700px; text-align: left;">
+            <div class="custom-modal-header">
+                <div class="cm-icon">📄</div>
+                <h3 class="custom-modal-title">Visualizar / Editar Relatório</h3>
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">Pode editar livremente o texto abaixo. A formatação original (negritos e cores) será mantida ao exportar para Word.</p>
+            <div id="preview-relatorio-editable" class="editable-div" contenteditable="true"></div>
+            
+            <div class="custom-modal-actions" style="margin-top:20px; display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end;">
+                <button class="cm-btn-cancel" onclick="fecharModalRelatorio()">Cancelar</button>
+                <button class="cm-btn-cancel" onclick="restaurarRelatorioPadrao()" title="Descartar edição e recarregar dados originais">🔄 Restaurar Padrão</button>
+                <button class="cm-btn-confirm" onclick="salvarRelatorioEditado()">💾 Guardar Edição</button>
+                <button class="cm-btn-confirm" style="background:#475569;" onclick="exportarRelatorioDoModal()">📄 Descarregar Doc</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-ata" class="modal-backdrop" style="z-index: 10001;">
+        <div class="modal-content" style="max-width: 700px; text-align: left;">
+            <div class="custom-modal-header">
+                <div class="cm-icon">⚖️</div>
+                <h3 class="custom-modal-title" style="color:#6d28d9;">Gerar Ata de Audiência</h3>
+            </div>
+            <div class="form-group">
+                <label>Selecione o Modelo de Ata:</label>
+                <select id="select-modelo-ata" onchange="atualizarPreviewAta()"></select>
+            </div>
+            <div class="form-group" style="margin-top:15px;">
+                <label>Pré-visualização (pode editar antes de copiar/exportar):</label>
+                <textarea id="preview-ata" rows="12"></textarea>
+            </div>
+            <div class="custom-modal-actions" style="margin-top:20px; display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end;">
+                <button class="cm-btn-cancel" onclick="fecharModalAta()">Cancelar</button>
+                <button class="cm-btn-cancel" onclick="restaurarAtaPadrao()" title="Descartar edição e recarregar modelo padrão">🔄 Restaurar Padrão</button>
+                <button class="cm-btn-confirm" onclick="salvarAtaEditada()">💾 Guardar Edição</button>
+                <button class="cm-btn-confirm" onclick="copiarTextoModal('preview-ata', fecharModalAta)">📋 Copiar</button>
+                <button class="cm-btn-confirm" style="background:#475569;" onclick="exportarAtaParaDoc()">📄 Exportar (Doc)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-minuta" class="modal-backdrop">
+        <div class="modal-content" style="max-width: 600px; text-align: left;">
+            <div class="custom-modal-header">
+                <div class="cm-icon">📝</div>
+                <h3 class="custom-modal-title">Gerar Minuta</h3>
+            </div>
+            <div class="form-group">
+                <label>Selecione o Modelo:</label>
+                <select id="select-modelo-minuta" onchange="atualizarPreviewMinuta()"></select>
+            </div>
+            <div class="form-group" style="margin-top:15px;">
+                <label>Pré-visualização (pode editar antes de copiar):</label>
+                <textarea id="preview-minuta" rows="8"></textarea>
+            </div>
+            <div class="custom-modal-actions" style="margin-top:20px; display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end;">
+                <button class="cm-btn-cancel" onclick="fecharModalMinuta()">Cancelar</button>
+                <button class="cm-btn-cancel" onclick="restaurarMinutaPadrao()" title="Descartar edição e recarregar modelo padrão">🔄 Restaurar Padrão</button>
+                <button class="cm-btn-confirm" onclick="salvarMinutaEditada()">💾 Guardar Edição</button>
+                <button class="cm-btn-confirm" style="background:#b45309;" onclick="copiarTextoModal('preview-minuta', fecharModalMinuta)">📋 Copiar Minuta</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-whatsapp" class="modal-backdrop" style="z-index: 10001;">
+        <div class="modal-content" style="max-width: 500px; text-align: left;">
+            <div class="custom-modal-header">
+                <div class="cm-icon">💬</div>
+                <h3 class="custom-modal-title" style="color:#16a34a;">Gerar Aviso de WhatsApp</h3>
+            </div>
+            <div class="form-group">
+                <label>Destinatário (Partes cadastradas):</label>
+                <select id="wp-destinatario" onchange="carregarWpPessoa()">
+                    <option value="">Selecione um destinatário...</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-top:10px;">
+                <label>Selecione a Mensagem Padrão:</label>
+                <select id="select-modelo-wp" onchange="atualizarPreviewWhatsApp()"></select>
+            </div>
+            <div class="form-group" style="margin-top:15px;">
+                <label>Mensagem (Ajuste o texto se precisar):</label>
+                <textarea id="preview-wp" rows="6"></textarea>
+            </div>
+            <div class="custom-modal-actions" style="margin-top:20px; display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end;">
+                <button class="cm-btn-cancel" onclick="fecharModalWhatsApp()">Cancelar</button>
+                <button class="cm-btn-cancel" onclick="restaurarWpPadrao()" title="Descartar edição e recarregar modelo padrão">🔄 Restaurar Padrão</button>
+                <button class="cm-btn-confirm" onclick="salvarWpEditado()">💾 Guardar Edição</button>
+                <button class="cm-btn-confirm" style="background:#475569;" onclick="copiarTextoModal('preview-wp', fecharModalWhatsApp)">📋 Copiar Texto</button>
+                <button class="cm-btn-confirm" style="background:#16a34a;" onclick="enviarWhatsAppWeb()">📲 Enviar Web</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-mandado" class="modal-backdrop" style="z-index: 10001;">
+        <div class="modal-content" style="max-width: 600px; text-align: left;">
+            <div class="custom-modal-header">
+                <div class="cm-icon">📜</div>
+                <h3 class="custom-modal-title" style="color:#3730a3;">Gerar Mandado de Intimação</h3>
+            </div>
+            <div class="form-group">
+                <label>Destinatário (Partes cadastradas):</label>
+                <select id="mandado-destinatario" onchange="carregarMandadoPessoa()">
+                    <option value="">Selecione um destinatário...</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-top:10px;">
+                <label>Selecione o Modelo:</label>
+                <select id="select-modelo-mandado" onchange="atualizarPreviewMandado()"></select>
+            </div>
+            <div class="form-group" style="margin-top:15px;">
+                <label>Pré-visualização (pode editar antes de copiar):</label>
+                <textarea id="preview-mandado" rows="8"></textarea>
+            </div>
+            <div class="custom-modal-actions" style="margin-top:20px; display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end;">
+                <button class="cm-btn-cancel" onclick="fecharModalMandado()">Cancelar</button>
+                <button class="cm-btn-cancel" onclick="restaurarMandadoPadrao()" title="Descartar edição e recarregar modelo padrão">🔄 Restaurar Padrão</button>
+                <button class="cm-btn-confirm" onclick="salvarMandadoEditado()">💾 Guardar Edição</button>
+                <button class="cm-btn-confirm" style="background:#3730a3;" onclick="copiarTextoModal('preview-mandado', fecharModalMandado)">📋 Copiar Mandado</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-modal" class="modal-backdrop" style="z-index: 10002;">
+        <div class="modal-content" style="max-width: 420px; text-align: left;">
+            <div class="custom-modal-header">
+                <div id="cm-icon" class="cm-icon">⚠️</div>
+                <h3 id="cm-title" class="custom-modal-title">Atenção</h3>
+            </div>
+            <div id="cm-message" class="custom-modal-body">Mensagem aqui.</div>
+            <div class="custom-modal-actions" id="cm-actions">
+                <button class="cm-btn-cancel" onclick="fecharModalCustomizado()">Cancelar</button>
+                <button class="cm-btn-confirm" id="cm-btn-confirm">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === VARIÁVEIS GLOBAIS ===
+        let todasPautas = {}; 
+        let dataAtualPauta = ""; 
+        let pautaSalva = []; 
+        let ultimoCalculo = null;
+        let ordemManualAtiva = false;
+        
+        let currentDataHoraReplace = ""; 
+        let currentProcessoReplace = ""; 
+        let currentHoraReplace = "";
+        let currentCumprimentoIndex = -1;
+        let tempPessoas = []; 
+
+        // Variáveis de Edição
+        let editandoCrimeId = null;
+        let editandoMinutaId = null;
+        let editandoWhatsAppId = null;
+        let editandoMandadoId = null;
+        let editandoAtaId = null;
+
+        let lastDeletedItem = null;
+        let lastDeletedIndex = -1;
+        let undoTimer = null;
+
+        let calCurrentMonth = new Date().getMonth();
+        let calCurrentYear = new Date().getFullYear();
+
+        const crimesPadrao = [
+            { id: 'c_1', nome: 'Tráfico de Drogas', pts: 45 }, { id: 'c_2', nome: 'Homicídio Consumado', pts: 45 },
+            { id: 'c_3', nome: 'Latrocínio', pts: 40 }, { id: 'c_4', nome: 'Homicídio Tentado', pts: 35 },
+            { id: 'c_5', nome: 'Roubo', pts: 30 }, { id: 'c_6', nome: 'Associação para o Tráfico', pts: 30 },
+            { id: 'c_7', nome: 'Estupro de Vulnerável', pts: 20 }, { id: 'c_8', nome: 'Estelionato / Fraude', pts: 20 },
+            { id: 'c_9', nome: 'Receptação Qualificada', pts: 20 }, { id: 'c_10', nome: 'Furto', pts: 15 },
+            { id: 'c_11', nome: 'Porte Arma de Fogo', pts: 15 }, { id: 'c_12', nome: 'Lesão Corporal', pts: 10 },
+            { id: 'c_13', nome: 'Lesão Corporal - Maria da Penha', pts: 10 }, { id: 'c_14', nome: 'Descumprimento de Medida Protetiva', pts: 10 },
+            { id: 'c_15', nome: 'Resistência / Desacato', pts: 10 }, { id: 'c_16', nome: 'Ameaça', pts: 5 },
+            { id: 'c_17', nome: 'Ameaça - Maria da Penha', pts: 5 }, { id: 'c_18', nome: 'Outros Crimes (Padrão)', pts: 10 }
+        ];
+
+        const minutasPadrao = [{
+            id: 'm_1', titulo: 'DESPACHO (Designação Padrão)',
+            texto: 'DESPACHO\n\nDesigno audiência de instrução e julgamento para o dia [adicionar data e hora constante da pauta].\nCumpram-se as diligências necessárias para realização do ato.\nDiligencie-se.'
+        }];
+
+        const whatsappPadrao = [{
+            id: 'w_1', titulo: 'Aviso Geral e Amigável',
+            texto: 'Olá! Informamos que a audiência do processo [processo] foi designada para o dia [data], às [hora]. A vara encontra-se à disposição para dúvidas.'
+        }];
+
+        const mandadosPadrao = [{
+            id: 'md_1', titulo: 'MANDADO (Intimação Genérica)',
+            texto: 'MANDADO DE INTIMAÇÃO\n\nFica V. Sa. intimado(a) para comparecer à audiência designada para o dia [adicionar data e hora constante da pauta], no Fórum local, sob as penas da Lei.'
+        }];
+
+        const atasPadrao = [
+            {
+                id: 'a_1', titulo: 'Ata de Instrução (Padrão Completo)',
+                texto: 'TERMO DE AUDIÊNCIA\n\nAos [data_hora], na sala de audiências, presente o MM. Juiz [juiz] e o Promotor de Justiça [promotor].\n\nFeito o pregão, constatou-se a presença do(s) réu(s):\n[reus]\n\nAcompanhado(s) por sua defesa ([tipo_advogado]): [advogado].\n\nPresente(s) a(s) vítima(s):\n[vitimas]\n\nPresente(s) a(s) testemunha(s):\n[testemunhas]\n\nOcorrências:\n[Escreva aqui o desenrolar da audiência]'
+            },
+            {
+                id: 'a_2', titulo: 'EXEMPLO: Todas as Variáveis Possíveis',
+                texto: 'PROCESSO: [processo]\nCRIME: [crime]\nTIPO DE AUDIÊNCIA: [tipo_audiencia]\nARTIGO: [artigo]\nBU: [bu]\n\nDATA: [data]\nHORA: [hora]\nDATA E HORA: [data_hora]\n\nJUIZ: [juiz]\nPROMOTOR: [promotor]\n\nADVOGADO NOME: [advogado]\nADVOGADO TIPO: [tipo_advogado]\n\nRÉUS Nomes: [reus]\nRÉUS Endereços: [reus_enderecos]\nRÉUS Telefones: [reus_telefones]\n\nVÍTIMAS Nomes: [vitimas]\nVÍTIMAS Endereços: [vitimas_enderecos]\nVÍTIMAS Telefones: [vitimas_telefones]\n\nTESTEMUNHAS Nomes: [testemunhas]\nTESTEMUNHAS Endereços: [testemunhas_enderecos]\nTESTEMUNHAS Telefones: [testemunhas_telefones]\n\nPEÇAS:\nDenúncia: [denuncia]\nDefesa Prévia: [defesa_previa]\nAntecedentes: [antecedentes]\nLaudo: [laudo]'
+            }
+        ];
+
+        let crimesAtivos = [...crimesPadrao];
+        let minutasAtivas = [...minutasPadrao];
+        let whatsappAtivos = [...whatsappPadrao];
+        let mandadosAtivos = [...mandadosPadrao];
+        let atasAtivas = [...atasPadrao];
+
+        // === INICIALIZAÇÃO DO FIREBASE ===
+        const firebaseConfig = {
+            apiKey: "AIzaSyB5VhL4XyeA_JC_M6G40tS4aDpAVrvPObk",
+            authDomain: "banco-de-dados-aud.firebaseapp.com",
+            projectId: "banco-de-dados-aud",
+            storageBucket: "banco-de-dados-aud.firebasestorage.app",
+            messagingSenderId: "304948629894",
+            appId: "1:304948629894:web:3dddd9821186ec870ddc07",
+            measurementId: "G-440MBCRSC9"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const configInputsIds = [
+            'cfg-nome-juiz', 'cfg-nome-promotor',
+            'cfg-ordem-pauta', 'cfg-hora-inicio', 'cfg-hora-fim', 'cfg-t-mc', 'cfg-t-c', 'cfg-t-m', 'cfg-t-s', 'cfg-t-fixo',
+            'cfg-k-reu', 'cfg-k-vit', 'cfg-k-tes', 'cfg-k-bonus-c', 'cfg-k-bonus-p', 'cfg-k-desconto-cont',
+            'cfg-h-def-c', 'cfg-h-def-n', 'cfg-h-def-d', 'cfg-h-preso', 'cfg-i-mc', 'cfg-i-c', 'cfg-i-m'
+        ];
+
+        // === INICIALIZAÇÃO ===
+        window.onload = async function() { 
+            if (localStorage.getItem('tjes_tema') === 'dark') toggleTema(true);
+            await carregarConfiguracoesLocal(); 
+            await carregarBancoPautas(); 
+            renderizarCrimes(); 
+            renderizarMinutas(); renderizarWhatsAppList(); renderizarMandadosList(); renderAtasList();
+            
+            // Corrige timezone bug puxando a data real local
+            let timezoneOffset = (new Date()).getTimezoneOffset() * 60000;
+            let hoje = (new Date(Date.now() - timezoneOffset)).toISOString().split('T')[0];
+            document.getElementById('data_pauta_calc').value = hoje;
+            mudarDataGlobal(hoje);
+        }
+
+        // === CUMPRIMENTO CARTORÁRIO E DINÂMICA ===
+        function abrirModalCumprimento(index, horaFormatada) {
+            currentCumprimentoIndex = index;
+            const proc = pautaSalva[index];
+            currentProcessoReplace = proc.proc;
+            currentHoraReplace = horaFormatada;
+            currentDataHoraReplace = `${formatarDataBR(dataAtualPauta)} às ${horaFormatada}`;
+
+            const cump = proc.cumprimento || {};
+            
+            document.getElementById('cump-artigo').value = cump.artigo || "";
+            document.getElementById('cump-bu').value = cump.bu || "";
+            document.getElementById('cump-mp-status').value = cump.mpStatus || "";
+            document.getElementById('cump-adv-tipo').value = cump.advTipo || "Constituída";
+            document.getElementById('cump-adv-nome').value = cump.advNome || "";
+            document.getElementById('cump-adv-status').value = cump.advStatus || "";
+            
+            document.getElementById('cump-denuncia').value = cump.denuncia || "";
+            document.getElementById('cump-defesa-previa').value = cump.defesaPrevia || "";
+            document.getElementById('cump-antecedentes-id').value = cump.antecedentesId || "";
+            document.getElementById('cump-laudo-id').value = cump.laudoId || "";
+            document.getElementById('cump-obs').value = cump.obs || "";
+
+            tempPessoas = JSON.parse(JSON.stringify(cump.pessoas || []));
+            renderCumpPessoas();
+
+            document.getElementById('modal-cumprimento').style.display = 'flex';
+        }
+
+        function fecharModalCumprimento() { document.getElementById('modal-cumprimento').style.display = 'none'; }
+
+        function salvarCumprimento() {
+            if(currentCumprimentoIndex > -1) {
+                // Guarda dados customizados para não sobrescrever
+                let procAtual = pautaSalva[currentCumprimentoIndex];
+                
+                procAtual.cumprimento = {
+                    ...procAtual.cumprimento, // mantém ataCustomizada, relatorioCustomizado, minutaCustomizada etc
+                    artigo: document.getElementById('cump-artigo').value,
+                    bu: document.getElementById('cump-bu').value,
+                    mpStatus: document.getElementById('cump-mp-status').value,
+                    advTipo: document.getElementById('cump-adv-tipo').value,
+                    advNome: document.getElementById('cump-adv-nome').value,
+                    advStatus: document.getElementById('cump-adv-status').value,
+                    denuncia: document.getElementById('cump-denuncia').value,
+                    defesaPrevia: document.getElementById('cump-defesa-previa').value,
+                    antecedentesId: document.getElementById('cump-antecedentes-id').value,
+                    laudoId: document.getElementById('cump-laudo-id').value,
+                    obs: document.getElementById('cump-obs').value,
+                    pessoas: tempPessoas
+                };
+                salvarPautasStorage();
+                mostrarModal('Sucesso', 'Dados de cumprimento guardados com sucesso!', 'success', false, () => {
+                    fecharModalCumprimento(); renderizarPauta();
+                });
+            }
+        }
+
+        function addCumpPessoa(tipo) {
+            tempPessoas.push({ tipo: tipo, nome: '', endereco: '', telefone: '', status: '' });
+            renderCumpPessoas();
+        }
+
+        function removeCumpPessoa(index) {
+            tempPessoas.splice(index, 1);
+            renderCumpPessoas();
+        }
+
+        function updateCumpPessoa(index, field, value) {
+            if(tempPessoas[index]) tempPessoas[index][field] = value;
+        }
+
+        function renderCumpPessoas() {
+            const container = document.getElementById('cump-pessoas-container');
+            container.innerHTML = "";
+            tempPessoas.forEach((p, i) => {
+                container.innerHTML += `
+                <div class="pessoa-block" style="grid-template-columns: 1fr 1fr; gap: 10px; background: var(--surface-white); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; grid-column: 1 / -1;">
+                        <select onchange="updateCumpPessoa(${i}, 'tipo', this.value)" style="width:auto; font-weight:bold; background:var(--bg-body);">
+                            <option value="Réu" ${p.tipo=='Réu'?'selected':''}>Réu</option>
+                            <option value="Vítima" ${p.tipo=='Vítima'?'selected':''}>Vítima</option>
+                            <option value="Testemunha" ${p.tipo=='Testemunha'?'selected':''}>Testemunha</option>
+                        </select>
+                        <button class="btn-small btn-remove" style="margin:0;" onclick="removeCumpPessoa(${i})">X Remover Aba</button>
+                    </div>
+                    <input type="text" placeholder="Nome Completo" value="${p.nome}" onchange="updateCumpPessoa(${i}, 'nome', this.value)">
+                    <textarea placeholder="Telefones (Ex: 27 9999-9999 / 27 8888-8888)" rows="2" onchange="updateCumpPessoa(${i}, 'telefone', this.value)">${p.telefone}</textarea>
+                    <textarea placeholder="Endereço(s) / Lotação" rows="2" onchange="updateCumpPessoa(${i}, 'endereco', this.value)">${p.endereco}</textarea>
+                    <textarea placeholder="Status / ID da Intimação (Ex: MANDADO CUMPRIDO ID 12345)" rows="2" onchange="updateCumpPessoa(${i}, 'status', this.value)">${p.status}</textarea>
+                </div>
+                `;
+            });
+        }
+
+        function abrirWhatsAppDoCumprimento() { abrirModalWhatsApp(currentCumprimentoIndex, currentHoraReplace, currentProcessoReplace); }
+        function abrirMandadoDoCumprimento() { abrirModalMandado(currentCumprimentoIndex, currentHoraReplace); }
+
+        // === LIXEIRA / DESFAZER ===
+        function removerItem(id) {
+            const index = pautaSalva.findIndex(item => item.id === id);
+            if (index > -1) {
+                lastDeletedItem = pautaSalva[index]; lastDeletedIndex = index;
+                pautaSalva.splice(index, 1);
+                salvarPautasStorage(); renderizarPauta(); mostrarToastDesfazer();
+            }
+        }
+        function mostrarToastDesfazer() {
+            const toast = document.getElementById('toast-undo'); toast.classList.add('show');
+            if(undoTimer) clearTimeout(undoTimer);
+            undoTimer = setTimeout(() => { toast.classList.remove('show'); lastDeletedItem = null; }, 8000); 
+        }
+        function desfazerExclusao() {
+            if(lastDeletedItem) {
+                const indexToInsert = (lastDeletedIndex >= 0 && lastDeletedIndex <= pautaSalva.length) ? lastDeletedIndex : pautaSalva.length;
+                pautaSalva.splice(indexToInsert, 0, lastDeletedItem);
+                salvarPautasStorage(); renderizarPauta();
+                document.getElementById('toast-undo').classList.remove('show');
+                lastDeletedItem = null; if(undoTimer) clearTimeout(undoTimer);
+            }
+        }
+
+        // === DRAG & DROP NATIVO ===
+        let dragSrcIndex = null;
+        function dragStart(e, index) {
+            dragSrcIndex = index; e.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => e.target.classList.add('dragging'), 50); document.body.classList.add('is-dragging');
+        }
+        function dragEnd(e) { e.target.classList.remove('dragging'); document.body.classList.remove('is-dragging'); }
+        function dragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+        function dropItem(e, dropIndex) {
+            e.preventDefault();
+            if (dragSrcIndex === null || dragSrcIndex === dropIndex) return;
+            const draggedItem = pautaSalva.splice(dragSrcIndex, 1)[0];
+            pautaSalva.splice(dropIndex, 0, draggedItem);
+            ordemManualAtiva = true; salvarPautasStorage(); renderizarPauta(); dragSrcIndex = null;
+        }
+
+        // === MODAIS (POP-UPS) ===
+        let confirmActionCallback = null;
+        function mostrarModal(titulo, mensagem, tipo, temCancelar = true, callback = null) {
+            document.getElementById('cm-title').innerText = titulo; document.getElementById('cm-message').innerText = mensagem;
+            const btnConfirm = document.getElementById('cm-btn-confirm');
+            btnConfirm.className = (tipo === 'danger') ? 'cm-btn-danger' : 'cm-btn-confirm';
+            document.getElementById('cm-icon').innerText = (tipo === 'success') ? '✅' : (tipo === 'danger' ? '🚨' : '⚠️');
+            const btnCancel = document.querySelector('.cm-btn-cancel');
+            btnCancel.style.display = temCancelar ? 'block' : 'none';
+            btnConfirm.innerText = temCancelar ? 'Confirmar' : 'OK';
+            confirmActionCallback = callback;
+            btnConfirm.onclick = function() { fecharModalCustomizado(); if(confirmActionCallback) confirmActionCallback(); };
+            document.getElementById('custom-modal').style.display = 'flex';
+        }
+
+        function fecharModalCustomizado() { document.getElementById('custom-modal').style.display = 'none'; }
+        function fecharModalMinuta() { document.getElementById('modal-minuta').style.display = 'none'; }
+        function fecharModalWhatsApp() { document.getElementById('modal-whatsapp').style.display = 'none'; }
+        function fecharModalMandado() { document.getElementById('modal-mandado').style.display = 'none'; }
+        function fecharCalendario() { document.getElementById('modal-calendario').style.display = 'none'; }
+        function fecharModalRelatorio() { document.getElementById('modal-relatorio').style.display = 'none'; }
+        function fecharModalAta() { document.getElementById('modal-ata').style.display = 'none'; }
+
+        window.onclick = function(e) {
+            if (e.target === document.getElementById('modal-calendario')) fecharCalendario();
+            if (e.target === document.getElementById('custom-modal')) fecharModalCustomizado();
+            if (e.target === document.getElementById('modal-minuta')) fecharModalMinuta();
+            if (e.target === document.getElementById('modal-whatsapp')) fecharModalWhatsApp();
+            if (e.target === document.getElementById('modal-mandado')) fecharModalMandado();
+            if (e.target === document.getElementById('modal-cumprimento')) fecharModalCumprimento();
+            if (e.target === document.getElementById('modal-relatorio')) fecharModalRelatorio();
+            if (e.target === document.getElementById('modal-ata')) fecharModalAta();
+        };
+
+        function copiarTextoModal(textAreaId, fecharModalFunc) {
+            const texto = document.getElementById(textAreaId).value;
+            if(!texto) return;
+            const tempTextarea = document.createElement('textarea'); tempTextarea.value = texto;
+            document.body.appendChild(tempTextarea); tempTextarea.select();
+            try {
+                document.execCommand('copy'); if(fecharModalFunc) fecharModalFunc();
+                mostrarModal('Sucesso', '📋 Copiado com sucesso!\nPode usar Ctrl+V para colar o texto.', 'success', false);
+            } catch (err) { mostrarModal('Erro', 'Erro ao copiar o texto.', 'danger', false); }
+            document.body.removeChild(tempTextarea);
+        }
+
+        // === MODO ESCURO E BUSCA GLOBAL ===
+        function toggleTema(forceDark = false) {
+            if (forceDark === true) document.body.classList.add('dark-mode'); else document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('tjes_tema', isDark ? 'dark' : 'light'); document.getElementById('btn-theme').innerText = isDark ? '☀️' : '🌓';
+        }
+
+        function buscarProcesso(e) {
+            if(e.key !== 'Enter') return;
+            const termo = document.getElementById('busca-global').value.trim().toLowerCase();
+            if(!termo) return;
+            
+            let encontrados = [];
+            for(let data in todasPautas) {
+                let pautasDia = todasPautas[data];
+                let currentTime = timeToMinutes(document.getElementById('cfg-hora-inicio').value);
+                
+                pautasDia.forEach(item => {
+                    let horaForm = minutesToTime(currentTime);
+                    if(item.proc.toLowerCase().includes(termo)) {
+                        let cump = item.cumprimento || {};
+                        let pessoas = cump.pessoas || [];
+                        let reus = pessoas.filter(p => p.tipo === 'Réu').map(p => p.nome).join(', ');
+                        if(!reus) reus = 'Não cadastrado';
+
+                        encontrados.push(`📅 ${formatarDataBR(data)} às ${horaForm} | Processo: ${item.proc}\n▶ Tipo Penal: ${item.detalhes.crimeNome}\n▶ Réu(s): ${reus}`);
+                    }
+                    currentTime += item.K;
+                });
+            }
+            if(encontrados.length > 0) mostrarModal('🔍 Resultado da Busca', encontrados.join('\n\n'), 'info', false);
+            else mostrarModal('🔍 Resultado da Busca', 'Nenhum processo correspondente encontrado no banco de dados.', 'warning', false);
+        }
+
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if(tabId !== 'config') document.getElementById('btn-tab-' + tabId).classList.add('active');
+            if (tabId === 'pauta') renderizarPauta();
+        }
+
+        function getCfg(id) { return parseFloat(document.getElementById(id).value) || 0; }
+        function timeToMinutes(timeStr) { const [hours, minutes] = timeStr.split(':').map(Number); return (hours * 60) + minutes; }
+        function minutesToTime(m) { const h = Math.floor(m / 60); const min = m % 60; return h.toString().padStart(2, '0') + ':' + min.toString().padStart(2, '0'); }
+        function formatarDataBR(dataStr) { const [a,m,d] = dataStr.split('-'); return `${d}/${m}/${a}`; }
+
+        function sincronizarInputData(novaData) { if(novaData) mudarDataGlobal(novaData); }
+
+        // === BANCO DE DADOS ===
+        async function carregarBancoPautas() {
+            try {
+                const docSnap = await db.collection("gabinete").doc("pautas").get();
+                if (docSnap.exists) {
+                    todasPautas = docSnap.data();
+                } else {
+                    const pautasGuardadas = localStorage.getItem('tjes_banco_pautas');
+                    if(pautasGuardadas) todasPautas = JSON.parse(pautasGuardadas);
+                }
+            } catch(e) {
+                console.error("Erro ao ler do Firebase, tentando cache local:", e);
+                const pautasGuardadas = localStorage.getItem('tjes_banco_pautas');
+                if(pautasGuardadas) todasPautas = JSON.parse(pautasGuardadas);
+            }
+        }
+
+        function salvarPautasStorage() {
+            todasPautas[dataAtualPauta] = pautaSalva;
+            for(let d in todasPautas) {
+                if(todasPautas[d].length === 0 && d !== dataAtualPauta) delete todasPautas[d];
+            }
+            
+            // Salva no Firebase na nuvem em segundo plano
+            db.collection("gabinete").doc("pautas").set(todasPautas).catch(e => console.error("Erro Firebase:", e));
+            // Mantém backup local de segurança
+            localStorage.setItem('tjes_banco_pautas', JSON.stringify(todasPautas));
+        }
+
+        function mudarDataGlobal(novaDataStr) {
+            if (dataAtualPauta && dataAtualPauta !== novaDataStr) {
+                document.getElementById('toast-undo').classList.remove('show');
+                lastDeletedItem = null;
+                if(undoTimer) clearTimeout(undoTimer);
+            }
+            dataAtualPauta = novaDataStr;
+            document.getElementById('data_pauta_calc').value = dataAtualPauta; document.getElementById('data_pauta').value = dataAtualPauta; 
+            if(!todasPautas[dataAtualPauta]) todasPautas[dataAtualPauta] = [];
+            pautaSalva = todasPautas[dataAtualPauta]; renderizarPauta();
+        }
+
+        function exportarBancoDados() {
+            const dados = { 
+                pautas: todasPautas, configs: JSON.parse(localStorage.getItem('tjes_configs') || '{}'), crimes: crimesAtivos,
+                minutas: minutasAtivas, whatsapp: whatsappAtivos, mandados: mandadosAtivos, atas: atasAtivas
+            };
+            const blob = new Blob([JSON.stringify(dados)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url;
+            a.download = `tjes_gestao_pauta_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function exportarDia() {
+            if(!dataAtualPauta || pautaSalva.length === 0) return mostrarModal('Erro', "Não há pauta salva para exportar neste dia.", 'warning', false);
+            const dados = pautaSalva;
+            const blob = new Blob([JSON.stringify(dados)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url;
+            a.download = `pauta_tjes_dia_${dataAtualPauta}.json`;
+            a.click();
+        }
+
+        function importarDia(event) {
+            const file = event.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const dados = JSON.parse(e.target.result);
+                    if(Array.isArray(dados)) {
+                        pautaSalva = dados; todasPautas[dataAtualPauta] = pautaSalva;
+                        salvarPautasStorage(); renderizarPauta();
+                        mostrarModal('Sucesso', 'Pauta do dia importada com sucesso!', 'success', false);
+                    } else { throw new Error("Formato inválido"); }
+                } catch(err) { mostrarModal('Erro', 'Ficheiro de pauta diária inválido ou corrompido.', 'danger', false); }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; 
+        }
+
+        function importarBancoDados(event) {
+            const file = event.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const dados = JSON.parse(e.target.result);
+                    if(dados.pautas) {
+                        localStorage.setItem('tjes_banco_pautas', JSON.stringify(dados.pautas));
+                        db.collection("gabinete").doc("pautas").set(dados.pautas);
+                    }
+                    if(dados.configs) localStorage.setItem('tjes_configs', JSON.stringify(dados.configs));
+                    if(dados.crimes) localStorage.setItem('tjes_crimes', JSON.stringify(dados.crimes));
+                    if(dados.minutas) localStorage.setItem('tjes_minutas', JSON.stringify(dados.minutas));
+                    if(dados.whatsapp) localStorage.setItem('tjes_whatsapp', JSON.stringify(dados.whatsapp));
+                    if(dados.mandados) localStorage.setItem('tjes_mandados', JSON.stringify(dados.mandados));
+                    if(dados.atas) localStorage.setItem('tjes_atas', JSON.stringify(dados.atas));
+                    
+                    let payload = {
+                        configs: dados.configs || {}, crimes: dados.crimes || crimesAtivos, minutas: dados.minutas || minutasAtivas, 
+                        whatsapp: dados.whatsapp || whatsappAtivos, mandados: dados.mandados || mandadosAtivos, atas: dados.atas || atasAtivas
+                    };
+                    db.collection("gabinete").doc("configs").set(payload);
+
+                    mostrarModal('Sucesso', '🛡️ Banco de dados restaurado e enviado para a nuvem! O sistema será recarregado.', 'success', false, () => location.reload());
+                } catch(err) { mostrarModal('Erro', 'Ficheiro de backup inválido ou corrompido.', 'danger', false); }
+            };
+            reader.readAsText(file);
+        }
+
+        // === CALENDÁRIO VISUAL ===
+        function abrirCalendario() {
+            if(dataAtualPauta) { let d = new Date(dataAtualPauta + "T12:00:00"); calCurrentMonth = d.getMonth(); calCurrentYear = d.getFullYear(); }
+            document.getElementById('modal-calendario').style.display = 'flex'; renderizarCalendario();
+        }
+
+        function mudarMesCalendario(delta) {
+            calCurrentMonth += delta;
+            if(calCurrentMonth > 11) { calCurrentMonth = 0; calCurrentYear++; }
+            if(calCurrentMonth < 0) { calCurrentMonth = 11; calCurrentYear--; }
+            renderizarCalendario();
+        }
+
+        function renderizarCalendario() {
+            const grid = document.getElementById('cal-dias'); grid.innerHTML = '';
+            const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            document.getElementById('cal-mes-ano').innerText = `${nomesMeses[calCurrentMonth]} ${calCurrentYear}`.toUpperCase();
+            
+            let primeiroDia = new Date(calCurrentYear, calCurrentMonth, 1).getDay(); 
+            let diasNoMes = new Date(calCurrentYear, calCurrentMonth + 1, 0).getDate();
+            let limiteMinutos = timeToMinutes(document.getElementById('cfg-hora-fim').value) - timeToMinutes(document.getElementById('cfg-hora-inicio').value);
+
+            for(let i=0; i<primeiroDia; i++) grid.innerHTML += `<div class="cal-day other-month"></div>`;
+
+            for(let dia=1; dia<=diasNoMes; dia++) {
+                let dataStr = `${calCurrentYear}-${String(calCurrentMonth+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+                let pautasDoDia = todasPautas[dataStr] || [];
+                let classeCor = '';
+                if (pautasDoDia.length > 0) {
+                    let tempoTotal = pautasDoDia.reduce((acc, curr) => acc + curr.K, 0);
+                    if (tempoTotal >= limiteMinutos) classeCor = 'status-fechada';
+                    else classeCor = 'status-parcial'; 
+                }
+                let isSelected = (dataStr === dataAtualPauta) ? 'selected' : '';
+                grid.innerHTML += `<div class="cal-day ${classeCor} ${isSelected}" onclick="selecionarDataPeloCalendario('${dataStr}')">${dia}</div>`;
+            }
+        }
+
+        function selecionarDataPeloCalendario(dataStr) { mudarDataGlobal(dataStr); fecharCalendario(); openTab('pauta'); }
+
+        // === CONFIGURAÇÕES ===
+        function salvarConfiguracoesLocal() {
+            let configs = {};
+            configInputsIds.forEach(id => {
+                if(document.getElementById(id)) configs[id] = document.getElementById(id).value;
+            });
+            
+            let payload = {
+                configs: configs, crimes: crimesAtivos, minutas: minutasAtivas, 
+                whatsapp: whatsappAtivos, mandados: mandadosAtivos, atas: atasAtivas
+            };
+            
+            // Salva na Nuvem
+            db.collection("gabinete").doc("configs").set(payload).catch(e => console.error(e));
+
+            // Salva Local
+            localStorage.setItem('tjes_configs', JSON.stringify(configs));
+            localStorage.setItem('tjes_crimes', JSON.stringify(crimesAtivos));
+            localStorage.setItem('tjes_minutas', JSON.stringify(minutasAtivas));
+            localStorage.setItem('tjes_whatsapp', JSON.stringify(whatsappAtivos));
+            localStorage.setItem('tjes_mandados', JSON.stringify(mandadosAtivos));
+            localStorage.setItem('tjes_atas', JSON.stringify(atasAtivas));
+            mostrarModal('Sucesso', '✅ Configurações guardadas na nuvem do Firebase!', 'success', false, () => { renderizarPauta(); openTab('calc'); });
+        }
+
+        async function carregarConfiguracoesLocal() {
+            try {
+                const docSnap = await db.collection("gabinete").doc("configs").get();
+                if (docSnap.exists) {
+                    let dados = docSnap.data();
+                    if (dados.configs) configInputsIds.forEach(id => { if(document.getElementById(id) && dados.configs[id] !== undefined) document.getElementById(id).value = dados.configs[id]; });
+                    if (dados.crimes && dados.crimes.length > 0) crimesAtivos = dados.crimes;
+                    if (dados.minutas && dados.minutas.length > 0) minutasAtivas = dados.minutas;
+                    if (dados.whatsapp && dados.whatsapp.length > 0) whatsappAtivos = dados.whatsapp;
+                    if (dados.mandados && dados.mandados.length > 0) mandadosAtivos = dados.mandados;
+                    if (dados.atas && dados.atas.length > 0) atasAtivas = dados.atas;
+                } else {
+                    carregarConfiguracoesDoStorageAntigo();
+                }
+            } catch (error) {
+                console.error("Erro ao buscar configs da nuvem.", error);
+                carregarConfiguracoesDoStorageAntigo();
+            }
+        }
+
+        function carregarConfiguracoesDoStorageAntigo() {
+            let configs = JSON.parse(localStorage.getItem('tjes_configs'));
+            if (configs) configInputsIds.forEach(id => { if(document.getElementById(id) && configs[id] !== undefined) document.getElementById(id).value = configs[id]; });
+            let crimesGuardados = JSON.parse(localStorage.getItem('tjes_crimes')); if (crimesGuardados && crimesGuardados.length > 0) crimesAtivos = crimesGuardados;
+            let minutasGuardadas = JSON.parse(localStorage.getItem('tjes_minutas')); if (minutasGuardadas && minutasGuardadas.length > 0) minutasAtivas = minutasGuardadas;
+            let wpGuardados = JSON.parse(localStorage.getItem('tjes_whatsapp')); if (wpGuardados && wpGuardados.length > 0) whatsappAtivos = wpGuardados;
+            let mdGuardados = JSON.parse(localStorage.getItem('tjes_mandados')); if (mdGuardados && mdGuardados.length > 0) mandadosAtivos = mdGuardados;
+            let ataGuardados = JSON.parse(localStorage.getItem('tjes_atas')); if (ataGuardados && ataGuardados.length > 0) atasAtivas = ataGuardados;
+        }
+
+        function restaurarPadroes() {
+            mostrarModal('Restaurar Padrões', 'Tem a certeza que deseja restaurar as configurações padrão?\nAtenção: isso apagará a configuração atual na nuvem também.', 'danger', true, async () => {
+                localStorage.removeItem('tjes_configs'); localStorage.removeItem('tjes_crimes'); localStorage.removeItem('tjes_minutas'); localStorage.removeItem('tjes_whatsapp'); localStorage.removeItem('tjes_mandados'); localStorage.removeItem('tjes_atas'); 
+                try { await db.collection("gabinete").doc("configs").delete(); } catch(e) {}
+                location.reload();
+            });
+        }
+
+        // --- Edição Dinâmica Global ---
+        function rolarParaElemento(id) {
+            const el = document.getElementById(id);
+            if(el) {
+                const y = el.getBoundingClientRect().top + window.scrollY - 120;
+                window.scrollTo({top: y, behavior: 'smooth'});
+            }
+        }
+
+        // --- Gestão Crimes ---
+        function adicionarCrime() {
+            const nome = document.getElementById('novo-crime-nome').value.trim(); const pts = parseInt(document.getElementById('novo-crime-pts').value);
+            if(!nome || isNaN(pts)) return mostrarModal('Erro', 'Preencha o nome e os pontos.', 'warning', false);
+            
+            if(editandoCrimeId) {
+                let idx = crimesAtivos.findIndex(c => c.id === editandoCrimeId);
+                if(idx > -1) { crimesAtivos[idx].nome = nome; crimesAtivos[idx].pts = pts; }
+                editandoCrimeId = null;
+                document.getElementById('btn-add-crime').innerHTML = "➕ Adicionar";
+            } else {
+                crimesAtivos.push({ id: 'c_' + Date.now(), nome: nome, pts: pts });
+            }
+            document.getElementById('novo-crime-nome').value = ""; renderizarCrimes();
+        }
+        function editarCrime(id) {
+            const item = crimesAtivos.find(c => c.id === id);
+            if(item) {
+                document.getElementById('novo-crime-nome').value = item.nome;
+                document.getElementById('novo-crime-pts').value = item.pts;
+                editandoCrimeId = id;
+                document.getElementById('btn-add-crime').innerHTML = "💾 Salvar Edição";
+                rolarParaElemento('novo-crime-nome');
+                document.getElementById('novo-crime-nome').focus();
+            }
+        }
+        function removerCrime(id) {
+            if(crimesAtivos.length <= 1) return mostrarModal('Erro', 'Deve existir pelo menos um tipo penal.', 'warning', false);
+            crimesAtivos = crimesAtivos.filter(c => c.id !== id); renderizarCrimes();
+        }
+        function renderizarCrimes() {
+            const selectCrime = document.getElementById('crime'); selectCrime.innerHTML = "";
+            crimesAtivos.forEach(c => { const opt = document.createElement('option'); opt.value = c.id; opt.innerText = c.nome; selectCrime.appendChild(opt); });
+            const listContainer = document.getElementById('lista-crimes-dinamica'); listContainer.innerHTML = "";
+            crimesAtivos.forEach(c => { 
+                listContainer.innerHTML += `<div class="crime-list-item"><div><strong>${c.nome}</strong> <span style="color:var(--text-muted); font-size:0.85rem;">(${c.pts} pts)</span></div><div style="display:flex; gap:5px;"><button class="btn-small btn-move" onclick="editarCrime('${c.id}')">✏️ Editar</button><button class="btn-small btn-remove" onclick="removerCrime('${c.id}')">✕</button></div></div>`; 
+            });
+        }
+
+        // --- Gestão Minutas ---
+        function adicionarMinuta() {
+            const titulo = document.getElementById('nova-minuta-titulo').value.trim(); const texto = document.getElementById('nova-minuta-texto').value.trim();
+            if(!titulo || !texto) return mostrarModal('Erro', 'Preencha o título e o texto do modelo de minuta.', 'warning', false);
+            
+            if(editandoMinutaId) {
+                let idx = minutasAtivas.findIndex(m => m.id === editandoMinutaId);
+                if(idx > -1) { minutasAtivas[idx].titulo = titulo; minutasAtivas[idx].texto = texto; }
+                editandoMinutaId = null;
+                document.getElementById('btn-add-minuta').innerHTML = "➕ Adicionar Modelo de Minuta";
+            } else {
+                minutasAtivas.push({ id: 'm_' + Date.now(), titulo: titulo, texto: texto });
+            }
+            document.getElementById('nova-minuta-titulo').value = ""; document.getElementById('nova-minuta-texto').value = ""; renderizarMinutas();
+        }
+        function editarMinuta(id) {
+            const item = minutasAtivas.find(m => m.id === id);
+            if(item) {
+                document.getElementById('nova-minuta-titulo').value = item.titulo;
+                document.getElementById('nova-minuta-texto').value = item.texto;
+                editandoMinutaId = id;
+                document.getElementById('btn-add-minuta').innerHTML = "💾 Salvar Edição";
+                rolarParaElemento('nova-minuta-titulo');
+                document.getElementById('nova-minuta-titulo').focus();
+            }
+        }
+        function removerMinuta(id) {
+            if(minutasAtivas.length <= 1) return mostrarModal('Erro', 'Deve existir pelo menos um modelo.', 'warning', false);
+            minutasAtivas = minutasAtivas.filter(m => m.id !== id); renderizarMinutas();
+        }
+        function renderizarMinutas() {
+            const listContainer = document.getElementById('lista-minutas-dinamica'); listContainer.innerHTML = "";
+            minutasAtivas.forEach(m => { 
+                listContainer.innerHTML += `<div class="crime-list-item" style="flex-direction:column; align-items:flex-start; gap:5px;"><div style="display:flex; justify-content:space-between; width:100%;"><strong>${m.titulo}</strong><div style="display:flex; gap:5px;"><button class="btn-small btn-move" onclick="editarMinuta('${m.id}')">✏️ Editar</button><button class="btn-small btn-remove" onclick="removerMinuta('${m.id}')">✕</button></div></div><div style="font-size:0.8rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;">${m.texto.substring(0, 60)}...</div></div>`; 
+            });
+        }
+
+        // --- Gestão WhatsApp ---
+        function adicionarWhatsApp() {
+            const titulo = document.getElementById('novo-wp-titulo').value.trim(); const texto = document.getElementById('novo-wp-texto').value.trim();
+            if(!titulo || !texto) return mostrarModal('Erro', 'Preencha o título e a mensagem para WhatsApp.', 'warning', false);
+            
+            if(editandoWhatsAppId) {
+                let idx = whatsappAtivos.findIndex(m => m.id === editandoWhatsAppId);
+                if(idx > -1) { whatsappAtivos[idx].titulo = titulo; whatsappAtivos[idx].texto = texto; }
+                editandoWhatsAppId = null;
+                document.getElementById('btn-add-wp').innerHTML = "➕ Adicionar Modelo de WhatsApp";
+            } else {
+                whatsappAtivos.push({ id: 'w_' + Date.now(), titulo: titulo, texto: texto });
+            }
+            document.getElementById('novo-wp-titulo').value = ""; document.getElementById('novo-wp-texto').value = ""; renderizarWhatsAppList();
+        }
+        function editarWhatsApp(id) {
+            const item = whatsappAtivos.find(m => m.id === id);
+            if(item) {
+                document.getElementById('novo-wp-titulo').value = item.titulo;
+                document.getElementById('novo-wp-texto').value = item.texto;
+                editandoWhatsAppId = id;
+                document.getElementById('btn-add-wp').innerHTML = "💾 Salvar Edição";
+                rolarParaElemento('novo-wp-titulo');
+                document.getElementById('novo-wp-titulo').focus();
+            }
+        }
+        function removerWhatsApp(id) {
+            if(whatsappAtivos.length <= 1) return mostrarModal('Erro', 'Deve existir pelo menos um modelo.', 'warning', false);
+            whatsappAtivos = whatsappAtivos.filter(m => m.id !== id); renderizarWhatsAppList();
+        }
+        function renderizarWhatsAppList() {
+            const listContainer = document.getElementById('lista-whatsapp-dinamica'); listContainer.innerHTML = "";
+            whatsappAtivos.forEach(m => { 
+                listContainer.innerHTML += `<div class="crime-list-item" style="flex-direction:column; align-items:flex-start; gap:5px;"><div style="display:flex; justify-content:space-between; width:100%;"><strong>${m.titulo}</strong><div style="display:flex; gap:5px;"><button class="btn-small btn-move" onclick="editarWhatsApp('${m.id}')">✏️ Editar</button><button class="btn-small btn-remove" onclick="removerWhatsApp('${m.id}')">✕</button></div></div><div style="font-size:0.8rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;">${m.texto.substring(0, 60)}...</div></div>`; 
+            });
+        }
+
+        // --- Gestão Mandados ---
+        function adicionarMandado() {
+            const titulo = document.getElementById('novo-mandado-titulo').value.trim(); const texto = document.getElementById('novo-mandado-texto').value.trim();
+            if(!titulo || !texto) return mostrarModal('Erro', 'Preencha o título e o texto do Mandado.', 'warning', false);
+            
+            if(editandoMandadoId) {
+                let idx = mandadosAtivos.findIndex(m => m.id === editandoMandadoId);
+                if(idx > -1) { mandadosAtivos[idx].titulo = titulo; mandadosAtivos[idx].texto = texto; }
+                editandoMandadoId = null;
+                document.getElementById('btn-add-mandado').innerHTML = "➕ Adicionar Modelo de Mandado";
+            } else {
+                mandadosAtivos.push({ id: 'md_' + Date.now(), titulo: titulo, texto: texto });
+            }
+            document.getElementById('novo-mandado-titulo').value = ""; document.getElementById('novo-mandado-texto').value = ""; renderizarMandadosList();
+        }
+        function editarMandado(id) {
+            const item = mandadosAtivos.find(m => m.id === id);
+            if(item) {
+                document.getElementById('novo-mandado-titulo').value = item.titulo;
+                document.getElementById('novo-mandado-texto').value = item.texto;
+                editandoMandadoId = id;
+                document.getElementById('btn-add-mandado').innerHTML = "💾 Salvar Edição";
+                rolarParaElemento('novo-mandado-titulo');
+                document.getElementById('novo-mandado-titulo').focus();
+            }
+        }
+        function removerMandado(id) {
+            if(mandadosAtivos.length <= 1) return mostrarModal('Erro', 'Deve existir pelo menos um modelo.', 'warning', false);
+            mandadosAtivos = mandadosAtivos.filter(m => m.id !== id); renderizarMandadosList();
+        }
+        function renderizarMandadosList() {
+            const listContainer = document.getElementById('lista-mandados-dinamica'); listContainer.innerHTML = "";
+            mandadosAtivos.forEach(m => { 
+                listContainer.innerHTML += `<div class="crime-list-item" style="flex-direction:column; align-items:flex-start; gap:5px;"><div style="display:flex; justify-content:space-between; width:100%;"><strong>${m.titulo}</strong><div style="display:flex; gap:5px;"><button class="btn-small btn-move" onclick="editarMandado('${m.id}')">✏️ Editar</button><button class="btn-small btn-remove" onclick="removerMandado('${m.id}')">✕</button></div></div><div style="font-size:0.8rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;">${m.texto.substring(0, 60)}...</div></div>`; 
+            });
+        }
+
+        // --- Gestão Atas ---
+        function adicionarAta() {
+            const titulo = document.getElementById('nova-ata-titulo').value.trim(); const texto = document.getElementById('nova-ata-texto').value.trim();
+            if(!titulo || !texto) return mostrarModal('Erro', 'Preencha o título e o texto do Modelo de Ata.', 'warning', false);
+            
+            if(editandoAtaId) {
+                let idx = atasAtivas.findIndex(m => m.id === editandoAtaId);
+                if(idx > -1) { atasAtivas[idx].titulo = titulo; atasAtivas[idx].texto = texto; }
+                editandoAtaId = null;
+                document.getElementById('btn-add-ata').innerHTML = "➕ Adicionar Modelo de Ata";
+            } else {
+                atasAtivas.push({ id: 'a_' + Date.now(), titulo: titulo, texto: texto });
+            }
+            document.getElementById('nova-ata-titulo').value = ""; document.getElementById('nova-ata-texto').value = ""; renderAtasList();
+        }
+        function editarAta(id) {
+            const item = atasAtivas.find(m => m.id === id);
+            if(item) {
+                document.getElementById('nova-ata-titulo').value = item.titulo;
+                document.getElementById('nova-ata-texto').value = item.texto;
+                editandoAtaId = id;
+                document.getElementById('btn-add-ata').innerHTML = "💾 Salvar Edição";
+                rolarParaElemento('nova-ata-titulo');
+                document.getElementById('nova-ata-titulo').focus();
+            }
+        }
+        function removerAta(id) {
+            if(atasAtivas.length <= 1) return mostrarModal('Erro', 'Deve existir pelo menos um modelo de Ata.', 'warning', false);
+            atasAtivas = atasAtivas.filter(m => m.id !== id); renderAtasList();
+        }
+        function renderAtasList() {
+            const listContainer = document.getElementById('lista-atas-dinamica'); listContainer.innerHTML = "";
+            atasAtivas.forEach(m => { 
+                listContainer.innerHTML += `<div class="crime-list-item" style="flex-direction:column; align-items:flex-start; gap:5px;"><div style="display:flex; justify-content:space-between; width:100%;"><strong>${m.titulo}</strong><div style="display:flex; gap:5px;"><button class="btn-small btn-move" onclick="editarAta('${m.id}')">✏️ Editar</button><button class="btn-small btn-remove" onclick="removerAta('${m.id}')">✕</button></div></div><div style="font-size:0.8rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;">${m.texto.substring(0, 60)}...</div></div>`; 
+            });
+        }
+
+        // === MODAIS SUBSTITUIÇÃO TEXTUAL ===
+        function abrirModalMinuta(index, horaFormatada) {
+            currentCumprimentoIndex = index;
+            const proc = pautaSalva[index];
+            currentProcessoReplace = proc.proc;
+            currentHoraReplace = horaFormatada;
+            currentDataHoraReplace = `${formatarDataBR(dataAtualPauta)} às ${horaFormatada}`;
+
+            const select = document.getElementById('select-modelo-minuta'); select.innerHTML = "";
+            minutasAtivas.forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.innerText = m.titulo; select.appendChild(opt); });
+
+            window.forceTemplateMinuta = false;
+            atualizarPreviewMinuta(); 
+            document.getElementById('modal-minuta').style.display = 'flex';
+        }
+
+        function atualizarPreviewMinuta() {
+            let procData = currentCumprimentoIndex >= 0 ? pautaSalva[currentCumprimentoIndex] : null;
+            if(procData && procData.cumprimento && procData.cumprimento.minutaCustomizada && !window.forceTemplateMinuta) {
+                document.getElementById('preview-minuta').value = procData.cumprimento.minutaCustomizada;
+                return;
+            }
+            const select = document.getElementById('select-modelo-minuta'); if(!select.value) return;
+            const minuta = minutasAtivas.find(m => m.id === select.value);
+            if(minuta) {
+                let textoFinal = minuta.texto.split('[adicionar data e hora constante da pauta]').join(currentDataHoraReplace).split('[processo]').join(currentProcessoReplace);
+                document.getElementById('preview-minuta').value = textoFinal;
+            }
+        }
+
+        function restaurarMinutaPadrao() {
+            window.forceTemplateMinuta = true;
+            atualizarPreviewMinuta();
+        }
+
+        function salvarMinutaEditada() {
+            if(currentCumprimentoIndex > -1) {
+                let txt = document.getElementById('preview-minuta').value;
+                if(!pautaSalva[currentCumprimentoIndex].cumprimento) pautaSalva[currentCumprimentoIndex].cumprimento = {};
+                pautaSalva[currentCumprimentoIndex].cumprimento.minutaCustomizada = txt;
+                salvarPautasStorage();
+                mostrarModal('Sucesso', 'Minuta editada salva com sucesso para este processo!', 'success', false);
+            }
+        }
+
+        function abrirModalWhatsApp(index, horaFormatada, processo) {
+            currentProcessoReplace = processo; currentHoraReplace = horaFormatada;
+            const select = document.getElementById('select-modelo-wp'); select.innerHTML = "";
+            whatsappAtivos.forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.innerText = m.titulo; select.appendChild(opt); });
+            
+            const selDest = document.getElementById('wp-destinatario');
+            selDest.innerHTML = '<option value="">Selecione um destinatário...</option>';
+            if(tempPessoas && tempPessoas.length > 0) {
+                tempPessoas.forEach((p, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = idx;
+                    opt.innerText = `${p.tipo}: ${p.nome || 'Sem Nome'} (${p.telefone || 'S/ Tel'})`;
+                    selDest.appendChild(opt);
+                });
+            }
+
+            window.forceTemplateWp = false;
+            // Se já tiver alguém selecionado ou for a primeira vez
+            carregarWpPessoa(); 
+            document.getElementById('modal-whatsapp').style.display = 'flex';
+        }
+
+        function carregarWpPessoa() {
+            let pIndex = document.getElementById('wp-destinatario').value;
+            if(pIndex === "") {
+                atualizarPreviewWhatsApp();
+                return;
+            }
+            let pessoa = tempPessoas[pIndex];
+            
+            if(pessoa.whatsappCustomizado && !window.forceTemplateWp) {
+                document.getElementById('preview-wp').value = pessoa.whatsappCustomizado;
+            } else {
+                window.forceTemplateWp = false;
+                atualizarPreviewWhatsApp(); 
+            }
+        }
+        
+        function atualizarPreviewWhatsApp() {
+            const select = document.getElementById('select-modelo-wp'); if(!select.value) return;
+            const modelo = whatsappAtivos.find(m => m.id === select.value);
+            if(modelo) {
+                let textoFinal = modelo.texto.split('[processo]').join(currentProcessoReplace).split('[data]').join(formatarDataBR(dataAtualPauta)).split('[hora]').join(currentHoraReplace);
+                document.getElementById('preview-wp').value = textoFinal;
+            }
+        }
+
+        function restaurarWpPadrao() {
+            window.forceTemplateWp = true;
+            if(document.getElementById('wp-destinatario').value !== "") {
+                carregarWpPessoa();
+            } else {
+                atualizarPreviewWhatsApp();
+            }
+        }
+
+        function salvarWpEditado() {
+            let pIndex = document.getElementById('wp-destinatario').value;
+            if(pIndex === "") return mostrarModal('Erro', 'Selecione um destinatário na lista acima primeiro.', 'warning', false);
+            
+            let txt = document.getElementById('preview-wp').value;
+            tempPessoas[pIndex].whatsappCustomizado = txt;
+            salvarCumprimento(); 
+            mostrarModal('Sucesso', 'Mensagem de WhatsApp salva especificamente para esta pessoa!', 'success', false);
+        }
+
+        function enviarWhatsAppWeb() {
+            let pIndex = document.getElementById('wp-destinatario').value;
+            if(pIndex === "") {
+                mostrarModal('Atenção', 'Selecione um destinatário para abrir o WhatsApp Web, ou utilize o botão "Copiar Texto".', 'warning', false);
+                return;
+            }
+            const phone = tempPessoas[pIndex].telefone;
+            const texto = document.getElementById('preview-wp').value;
+            
+            if(!texto) return;
+            if(!phone) {
+                mostrarModal('Atenção', 'A pessoa selecionada não possui um número de telefone registado.', 'warning', false);
+                return;
+            }
+            const numApenas = phone.replace(/\D/g, '');
+            let url = `https://wa.me/55${numApenas}?text=${encodeURIComponent(texto)}`;
+            window.open(url, '_blank');
+            fecharModalWhatsApp();
+        }
+
+        function abrirModalMandado(index, horaFormatada) {
+            currentDataHoraReplace = `${formatarDataBR(dataAtualPauta)} às ${horaFormatada}`;
+            const select = document.getElementById('select-modelo-mandado'); select.innerHTML = "";
+            mandadosAtivos.forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.innerText = m.titulo; select.appendChild(opt); });
+
+            const selDest = document.getElementById('mandado-destinatario');
+            selDest.innerHTML = '<option value="">Selecione um destinatário...</option>';
+            if(tempPessoas && tempPessoas.length > 0) {
+                tempPessoas.forEach((p, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = idx;
+                    opt.innerText = `${p.tipo}: ${p.nome || 'Sem Nome'} (${p.endereco || 'S/ Endereço'})`;
+                    selDest.appendChild(opt);
+                });
+            }
+
+            window.forceTemplateMandado = false;
+            carregarMandadoPessoa(); 
+            document.getElementById('modal-mandado').style.display = 'flex';
+        }
+
+        function carregarMandadoPessoa() {
+            let pIndex = document.getElementById('mandado-destinatario').value;
+            if(pIndex === "") {
+                atualizarPreviewMandado();
+                return;
+            }
+            let pessoa = tempPessoas[pIndex];
+            
+            if(pessoa.mandadoCustomizado && !window.forceTemplateMandado) {
+                document.getElementById('preview-mandado').value = pessoa.mandadoCustomizado;
+            } else {
+                window.forceTemplateMandado = false;
+                atualizarPreviewMandado(); 
+            }
+        }
+
+        function atualizarPreviewMandado() {
+            const select = document.getElementById('select-modelo-mandado'); if(!select.value) return;
+            const mandado = mandadosAtivos.find(m => m.id === select.value);
+            if(mandado) document.getElementById('preview-mandado').value = mandado.texto.split('[adicionar data e hora constante da pauta]').join(currentDataHoraReplace);
+        }
+
+        function restaurarMandadoPadrao() {
+            window.forceTemplateMandado = true;
+            if(document.getElementById('mandado-destinatario').value !== "") {
+                carregarMandadoPessoa();
+            } else {
+                atualizarPreviewMandado();
+            }
+        }
+
+        function salvarMandadoEditado() {
+            let pIndex = document.getElementById('mandado-destinatario').value;
+            if(pIndex === "") return mostrarModal('Erro', 'Selecione um destinatário na lista acima primeiro.', 'warning', false);
+            
+            let txt = document.getElementById('preview-mandado').value;
+            tempPessoas[pIndex].mandadoCustomizado = txt;
+            salvarCumprimento(); 
+            mostrarModal('Sucesso', 'Mandado salvo especificamente para esta pessoa!', 'success', false);
+        }
+
+        // === GERADOR DE ATA DE AUDIÊNCIA ===
+        function getPessoaInfo(tipo, infoType) {
+            let filtrados = tempPessoas.filter(p => p.tipo === tipo);
+            if (filtrados.length === 0) return 'Nenhum(a) cadastrado(a).';
+            
+            return filtrados.map((p, index) => {
+                let prefix = filtrados.length > 1 ? `(${index + 1}) ` : '';
+                if (infoType === 'nome') return `${prefix}${p.nome || 'Nome não informado'}`;
+                if (infoType === 'endereco') return `${prefix}${p.endereco || 'Sem endereço'}`;
+                if (infoType === 'telefone') return `${prefix}${p.telefone || 'Sem telefone'}`;
+                return '';
+            }).join('\n');
+        }
+
+        function abrirModalAta() {
+            const select = document.getElementById('select-modelo-ata'); select.innerHTML = "";
+            atasAtivas.forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.innerText = m.titulo; select.appendChild(opt); });
+            window.forceTemplateAta = false;
+            atualizarPreviewAta(); 
+            document.getElementById('modal-ata').style.display = 'flex';
+        }
+
+        function atualizarPreviewAta() {
+            let procData = currentCumprimentoIndex >= 0 ? pautaSalva[currentCumprimentoIndex] : null;
+            if(procData && procData.cumprimento && procData.cumprimento.ataCustomizada && !window.forceTemplateAta) {
+                document.getElementById('preview-ata').value = procData.cumprimento.ataCustomizada;
+                return;
+            }
+
+            const select = document.getElementById('select-modelo-ata'); if(!select.value) return;
+            const modeloAta = atasAtivas.find(m => m.id === select.value);
+            
+            if(modeloAta) {
+                let juiz = document.getElementById('cfg-nome-juiz') ? document.getElementById('cfg-nome-juiz').value : "";
+                let promotor = document.getElementById('cfg-nome-promotor') ? document.getElementById('cfg-nome-promotor').value : "";
+                if(!juiz) juiz = "[Magistrado Não Informado nas Configurações]";
+                if(!promotor) promotor = "[Promotor Não Informado nas Configurações]";
+                
+                let advogado = document.getElementById('cump-adv-nome').value || "[Nome do Advogado não preenchido]";
+                let tipoAdvogado = document.getElementById('cump-adv-tipo').value || "[Tipo de defesa não selecionado]";
+
+                let reusNomes = getPessoaInfo('Réu', 'nome');
+                let reusEnd = getPessoaInfo('Réu', 'endereco');
+                let reusTel = getPessoaInfo('Réu', 'telefone');
+
+                let vitimasNomes = getPessoaInfo('Vítima', 'nome');
+                let vitimasEnd = getPessoaInfo('Vítima', 'endereco');
+                let vitimasTel = getPessoaInfo('Vítima', 'telefone');
+
+                let testNomes = getPessoaInfo('Testemunha', 'nome');
+                let testEnd = getPessoaInfo('Testemunha', 'endereco');
+                let testTel = getPessoaInfo('Testemunha', 'telefone');
+
+                // Variáveis Expandidas baseadas nos dados do Cumprimento/Detalhes
+                let cump = procData ? (procData.cumprimento || {}) : {};
+                let detalhes = procData ? (procData.detalhes || {}) : {};
+
+                let varProcesso = procData ? procData.proc : currentProcessoReplace || "[processo]";
+                let varCrime = detalhes.crimeNome || "[crime]";
+                let varTipoAudiencia = detalhes.tipoAudiencia || "[tipo_audiencia]";
+                let varArtigo = cump.artigo || "[artigo]";
+                let varBu = cump.bu || "[bu]";
+                let varData = dataAtualPauta ? formatarDataBR(dataAtualPauta) : "[data]";
+                let varHora = currentHoraReplace || "[hora]";
+                let varDataHora = currentDataHoraReplace || (varData + ' às ' + varHora);
+                
+                let varDenuncia = cump.denuncia || "Não informada";
+                let varDefesaPrevia = cump.defesaPrevia || "Não informada";
+                let varAntecedentes = cump.antecedentesId || "Não informados";
+                let varLaudo = cump.laudoId || "Não informado";
+
+                let textoFinal = modeloAta.texto
+                    .split('[processo]').join(varProcesso)
+                    .split('[crime]').join(varCrime)
+                    .split('[tipo_audiencia]').join(varTipoAudiencia)
+                    .split('[artigo]').join(varArtigo)
+                    .split('[bu]').join(varBu)
+                    .split('[data_hora]').join(varDataHora)
+                    .split('[data]').join(varData)
+                    .split('[hora]').join(varHora)
+                    .split('[juiz]').join(juiz)
+                    .split('[promotor]').join(promotor)
+                    .split('[advogado]').join(advogado)
+                    .split('[tipo_advogado]').join(tipoAdvogado)
+                    .split('[reus_enderecos]').join(reusEnd)
+                    .split('[reus_telefones]').join(reusTel)
+                    .split('[reus]').join(reusNomes)
+                    .split('[vitimas_enderecos]').join(vitimasEnd)
+                    .split('[vitimas_telefones]').join(vitimasTel)
+                    .split('[vitimas]').join(vitimasNomes)
+                    .split('[testemunhas_enderecos]').join(testEnd)
+                    .split('[testemunhas_telefones]').join(testTel)
+                    .split('[testemunhas]').join(testNomes)
+                    .split('[denuncia]').join(varDenuncia)
+                    .split('[defesa_previa]').join(varDefesaPrevia)
+                    .split('[antecedentes]').join(varAntecedentes)
+                    .split('[laudo]').join(varLaudo);
+
+                document.getElementById('preview-ata').value = textoFinal;
+            }
+        }
+
+        function restaurarAtaPadrao() {
+            window.forceTemplateAta = true;
+            atualizarPreviewAta();
+        }
+
+        function salvarAtaEditada() {
+            if(currentCumprimentoIndex > -1) {
+                let txt = document.getElementById('preview-ata').value;
+                if(!pautaSalva[currentCumprimentoIndex].cumprimento) pautaSalva[currentCumprimentoIndex].cumprimento = {};
+                pautaSalva[currentCumprimentoIndex].cumprimento.ataCustomizada = txt;
+                salvarPautasStorage();
+                mostrarModal('Sucesso', 'Ata editada salva com sucesso para este processo!', 'success', false);
+            }
+        }
+
+        function exportarAtaParaDoc() {
+            const texto = document.getElementById('preview-ata').value;
+            if(!texto) return;
+
+            let htmlContent = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head><meta charset='utf-8'><title>Termo de Audiência</title>
+            <style>body { font-family: Arial, sans-serif; font-size: 11pt; color: #000; line-height: 1.4; }</style>
+            </head><body>`;
+            
+            let linhas = texto.split('\n');
+            linhas.forEach(l => {
+                htmlContent += `<p style="margin: 3px 0;">${l}</p>`;
+            });
+            htmlContent += `</body></html>`;
+
+            let blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+            let url = URL.createObjectURL(blob);
+            let link = document.createElement('a'); link.href = url;
+            link.download = `Ata_Audiencia_${currentProcessoReplace.replace(/[^a-zA-Z0-9]/g, '_')}.doc`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        // === EDITAR RELATÓRIO DO CUMPRIMENTO NO POP-UP E EXPORTAR DOC ===
+        function gerarRelatorioPadraoHtml(idxToUse, proc, cump) {
+            let horaAtual = timeToMinutes(document.getElementById('cfg-hora-inicio').value);
+            for(let i=0; i<idxToUse; i++) horaAtual += pautaSalva[i].K;
+            let horaProc = minutesToTime(horaAtual);
+
+            let nomeJuiz = document.getElementById('cfg-nome-juiz') ? document.getElementById('cfg-nome-juiz').value : "";
+            let nomePromotor = document.getElementById('cfg-nome-promotor') ? document.getElementById('cfg-nome-promotor').value : "";
+
+            let pessoas = cump.pessoas || [];
+            let strReus = pessoas.filter(p=>p.tipo==='Réu').map(p => `RÉU: ${p.nome || 'N/I'} - ${p.endereco || 'Sem endereço'} - ${p.telefone || 'Sem telefone'} ${p.status ? '- <b>' + p.status + '</b>' : ''}`).join('<br><br>');
+            let strVitimas = pessoas.filter(p=>p.tipo==='Vítima').map(p => `VÍTIMA: ${p.nome || 'N/I'} - ${p.endereco || 'Sem endereço'} - ${p.telefone || 'Sem telefone'} ${p.status ? '- <b>' + p.status + '</b>' : ''}`).join('<br><br>');
+            let strTestemunhas = pessoas.filter(p=>p.tipo==='Testemunha').map(p => `${p.nome || 'N/I'} - ${p.endereco || 'Sem endereço'} - ${p.telefone || 'Sem telefone'} ${p.status ? '- <b>' + p.status + '</b>' : ''}`).join('<br><br>');
+
+            return `
+                <p><b>${idxToUse + 1}ª - ${horaProc} - ${proc.proc} - ${proc.detalhes.crimeNome} ${cump.artigo ? '- ' + cump.artigo : ''} ${cump.bu ? '- BU ' + cump.bu : ''}</b></p>
+                <br>
+                <p><b>AUDIÊNCIA REGISTRADA</b><br>
+                <b>MP ${nomePromotor ? '('+nomePromotor+')' : ''}</b> - ${cump.mpStatus || 'Status não informado'}</p>
+                <br>
+                <p>Advogado ${cump.advTipo || ''}${cump.advNome ? ': ' + cump.advNome : ''}:<br>
+                <b>${cump.advStatus || 'Sem status registrado'}</b></p>
+                <br>
+                <p><b>Partes:</b><br>
+                ${strReus ? strReus + '<br><br>' : ''}
+                ${strVitimas ? strVitimas + '<br><br>' : ''}</p>
+                
+                <p><b>Testemunhas:</b><br>
+                ${strTestemunhas || 'Não cadastradas'}</p>
+                <br>
+                ${cump.obs ? `<p><mark style="background-color: #f59e0b; color: black;"><b>${cump.obs.toUpperCase()}</b></mark></p><br>` : ''}
+                
+                <p><b>Rol de testemunhas</b> - apresentado na denúncia<br>
+                <b>Denúncia:</b> ${cump.denuncia || 'N/I'}<br>
+                <b>Defesa Prévia:</b> ${cump.defesaPrevia || 'N/I'}<br>
+                <b>Antecedentes Criminais:</b> ${cump.antecedentesId ? 'ID ' + cump.antecedentesId : 'Não juntado'}<br>
+                <b>Laudo Pericial:</b> ${cump.laudoId ? 'ID ' + cump.laudoId : 'Não juntado'}</p>
+            `;
+        }
+
+        function abrirModalRelatorio(index = null) {
+            let idxToUse = index !== null ? index : currentCumprimentoIndex;
+            if(idxToUse < 0) return;
+            currentCumprimentoIndex = idxToUse; // Atualiza a referência global
+
+            let proc = pautaSalva[idxToUse];
+            let cump = proc.cumprimento || {};
+
+            if(cump.relatorioCustomizado) {
+                document.getElementById('preview-relatorio-editable').innerHTML = cump.relatorioCustomizado;
+            } else {
+                document.getElementById('preview-relatorio-editable').innerHTML = gerarRelatorioPadraoHtml(idxToUse, proc, cump);
+            }
+
+            document.getElementById('modal-relatorio').style.display = 'flex';
+        }
+
+        function salvarRelatorioEditado() {
+            if(currentCumprimentoIndex > -1) {
+                let htmlInner = document.getElementById('preview-relatorio-editable').innerHTML;
+                if(!pautaSalva[currentCumprimentoIndex].cumprimento) pautaSalva[currentCumprimentoIndex].cumprimento = {};
+                pautaSalva[currentCumprimentoIndex].cumprimento.relatorioCustomizado = htmlInner;
+                salvarPautasStorage();
+                mostrarModal('Sucesso', 'Relatório atualizado salvo no sistema!', 'success', false, () => {
+                    fecharModalRelatorio();
+                });
+            }
+        }
+
+        function restaurarRelatorioPadrao() {
+            if(currentCumprimentoIndex > -1) {
+                let proc = pautaSalva[currentCumprimentoIndex];
+                let cump = proc.cumprimento || {};
+                document.getElementById('preview-relatorio-editable').innerHTML = gerarRelatorioPadraoHtml(currentCumprimentoIndex, proc, cump);
+            }
+        }
+
+        function exportarRelatorioDoModal() {
+            let htmlInner = document.getElementById('preview-relatorio-editable').innerHTML;
+            let htmlContent = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head><meta charset='utf-8'><title>Relatório de Cumprimento</title>
+            <style>body { font-family: Arial, sans-serif; font-size: 11pt; color: #000; line-height: 1.4; } p { margin: 3px 0; }</style>
+            </head><body>${htmlInner}</body></html>`;
+
+            let blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+            let url = URL.createObjectURL(blob);
+            let link = document.createElement('a'); link.href = url;
+            link.download = `Cumprimento_${currentProcessoReplace.replace(/[^a-zA-Z0-9]/g, '_')}.doc`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            fecharModalRelatorio();
+        }
+
+        // === EXPORTAR DOC PAUTA COMPLETA ===
+        function exportarPautaCompletaDoc() {
+            if(!dataAtualPauta || pautaSalva.length === 0) return mostrarModal('Erro', "Não há pauta para exportar neste dia.", 'warning', false);
+
+            let nomeJuiz = document.getElementById('cfg-nome-juiz') ? document.getElementById('cfg-nome-juiz').value : "";
+            let nomePromotor = document.getElementById('cfg-nome-promotor') ? document.getElementById('cfg-nome-promotor').value : "";
+
+            let htmlContent = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head><meta charset='utf-8'><title>Relatórios de Cumprimento</title>
+            <style>
+                body { font-family: Arial, sans-serif; font-size: 11pt; color: #000; line-height: 1.4; }
+                p { margin: 3px 0; }
+                .doc-block { margin-bottom: 40px; }
+            </style>
+            </head><body>
+            <h2 style="text-align:center;">Relatórios de Cumprimento da Pauta - ${formatarDataBR(dataAtualPauta)}</h2>
+            `;
+
+            let horaAtual = timeToMinutes(document.getElementById('cfg-hora-inicio').value);
+
+            pautaSalva.forEach((proc, relativeIdx) => {
+                let horaProc = minutesToTime(horaAtual);
+                let ordem = relativeIdx + 1;
+                let cump = proc.cumprimento || {};
+                let pessoas = cump.pessoas || [];
+
+                let strReus = pessoas.filter(p=>p.tipo==='Réu').map(p => `RÉU: ${p.nome || 'N/I'} - ${p.endereco || 'Sem endereço'} - ${p.telefone || 'Sem telefone'} ${p.status ? '- <b>' + p.status + '</b>' : ''}`).join('<br><br>');
+                let strVitimas = pessoas.filter(p=>p.tipo==='Vítima').map(p => `VÍTIMA: ${p.nome || 'N/I'} - ${p.endereco || 'Sem endereço'} - ${p.telefone || 'Sem telefone'} ${p.status ? '- <b>' + p.status + '</b>' : ''}`).join('<br><br>');
+                let strTestemunhas = pessoas.filter(p=>p.tipo==='Testemunha').map(p => `${p.nome || 'N/I'} - ${p.endereco || 'Sem endereço'} - ${p.telefone || 'Sem telefone'} ${p.status ? '- <b>' + p.status + '</b>' : ''}`).join('<br><br>');
+
+                htmlContent += `
+                <div class="doc-block">
+                    <p><b>${ordem}ª - ${horaProc} - ${proc.proc} - ${proc.detalhes.crimeNome} ${cump.artigo ? '- ' + cump.artigo : ''} ${cump.bu ? '- BU ' + cump.bu : ''}</b></p>
+                    <br>
+                    <p><b>AUDIÊNCIA REGISTRADA</b><br>
+                    <b>MP ${nomePromotor ? '('+nomePromotor+')' : ''}</b> - ${cump.mpStatus || 'Status não informado'}</p>
+                    <br>
+                    <p>Advogado ${cump.advTipo || ''}${cump.advNome ? ': ' + cump.advNome : ''}:<br>
+                    <b>${cump.advStatus || 'Sem status registrado'}</b></p>
+                    <br>
+                    <p><b>Partes:</b><br>
+                    ${strReus ? strReus + '<br><br>' : ''}
+                    ${strVitimas ? strVitimas + '<br><br>' : ''}</p>
+                    
+                    <p><b>Testemunhas:</b><br>
+                    ${strTestemunhas || 'Não cadastradas'}</p>
+                    <br>
+                    ${cump.obs ? `<p><mark style="background-color: #f59e0b; color: black;"><b>${cump.obs.toUpperCase()}</b></mark></p><br>` : ''}
+                    
+                    <p><b>Rol de testemunhas</b> - apresentado na denúncia<br>
+                    <b>Denúncia:</b> ${cump.denuncia || 'N/I'}<br>
+                    <b>Defesa Prévia:</b> ${cump.defesaPrevia || 'N/I'}<br>
+                    <b>Antecedentes Criminais:</b> ${cump.antecedentesId ? 'ID ' + cump.antecedentesId : 'Não juntado'}<br>
+                    <b>Laudo Pericial:</b> ${cump.laudoId ? 'ID ' + cump.laudoId : 'Não juntado'}</p>
+                </div>
+                <hr style="border: 0; border-bottom: 1px solid #ccc; margin: 30px 0;">
+                `;
+                horaAtual += proc.K;
+            });
+
+            htmlContent += `</body></html>`;
+
+            let blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+            let url = URL.createObjectURL(blob);
+            let link = document.createElement('a');
+            link.href = url;
+            link.download = `Pauta_Cumprimentos_${dataAtualPauta}.doc`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // === CALCULADORA ===
+        function calcularTudo() {
+            const crimeId = document.getElementById('crime').value;
+            const crimeObj = crimesAtivos.find(c => c.id === crimeId);
+            const crimePts = crimeObj ? crimeObj.pts : 10;
+            const crimeNome = crimeObj ? crimeObj.nome : "Desconhecido";
+            
+            const tipoAudiencia = document.getElementById('tipo_audiencia').value;
+            const defesa = document.getElementById('defesa').value;
+            const preso = document.getElementById('preso').value;
+            const nReus = parseInt(document.getElementById('reus').value) || 0;
+            const nVitimas = parseInt(document.getElementById('vitimas').value) || 0;
+            const nTestemunhas = parseInt(document.getElementById('testemunhas').value) || 0;
+            const tAdicional = parseInt(document.getElementById('adicional').value) || 0;
+            const proc = document.getElementById('processo').value || "Não informado";
+
+            let hDefesa = 0;
+            if (defesa === "Constituída") hDefesa = getCfg('cfg-h-def-c');
+            else if (defesa === "Nomeada") hDefesa = getCfg('cfg-h-def-n');
+            else if (defesa === "Defensoria") hDefesa = getCfg('cfg-h-def-d'); 
+
+            let hPartes = (nReus * 7.5) + (nVitimas * 6) + (nTestemunhas * 5); 
+            let hPreso = (preso === "SIM") ? getCfg('cfg-h-preso') : 0;
+            let H = hDefesa + hPartes + hPreso + crimePts;
+
+            let complex = ""; let baseTempo = 0;
+            if (H > getCfg('cfg-i-mc')) { complex = "Nível: Alta (Muito Complexo)"; baseTempo = getCfg('cfg-t-mc'); }
+            else if (H >= getCfg('cfg-i-c')) { complex = "Nível: Alta (Complexo)"; baseTempo = getCfg('cfg-t-c'); }
+            else if (H >= getCfg('cfg-i-m')) { complex = "Nível: Média"; baseTempo = getCfg('cfg-t-m'); }
+            else { complex = "Nível: Baixa (Simples)"; baseTempo = getCfg('cfg-t-s'); }
+
+            let kPartes = (nReus * getCfg('cfg-k-reu')) + (nVitimas * getCfg('cfg-k-vit')) + (nTestemunhas * getCfg('cfg-k-tes'));
+            let kDefesa = (defesa === "Constituída") ? getCfg('cfg-k-bonus-c') : 0;
+            let kPreso = (preso === "SIM") ? getCfg('cfg-k-bonus-p') : 0;
+            let descontoCont = (tipoAudiencia === "Continuação") ? getCfg('cfg-k-desconto-cont') : 0;
+            
+            let kOriginal = baseTempo + kPartes + kDefesa + kPreso + tAdicional + getCfg('cfg-t-fixo') - descontoCont;
+            if (kOriginal < 5) kOriginal = 5; 
+            
+            let resto = kOriginal % 10;
+            let baseDez = Math.floor(kOriginal / 10) * 10;
+            let K_arredondado;
+            
+            if (resto <= 2) K_arredondado = baseDez;
+            else if (resto >= 3 && resto <= 7) K_arredondado = baseDez + 5;
+            else K_arredondado = baseDez + 10;
+
+            if (K_arredondado < 5) K_arredondado = 5;
+
+            ultimoCalculo = {
+                id: Date.now().toString(), proc, H, complex, K: K_arredondado, kOriginal,
+                detalhes: { tipoAudiencia, crimeNome, defesa, nReus, nVitimas, nTestemunhas, hDefesa, hPartes, hPreso, crimePts, baseTempo, kPartes, kDefesa, kPreso, tAdicional, descontoCont },
+                cumprimento: { pessoas: [] }
+            };
+
+            document.getElementById('res-complex').innerText = complex;
+            document.getElementById('res-tempo').innerText = K_arredondado + " min";
+            document.getElementById('resultado').style.display = 'block'; document.getElementById('verify-box').style.display = 'none';
+        }
+
+        function toggleVerify() {
+            const box = document.getElementById('verify-box');
+            if (!ultimoCalculo) return;
+            if (box.style.display === 'block') { box.style.display = 'none'; } 
+            else {
+                let txtDesconto = ultimoCalculo.detalhes.descontoCont > 0 ? `<br>Subtração (Continuação): <strong>- ${ultimoCalculo.detalhes.descontoCont} min</strong>` : "";
+                box.innerHTML = `
+                    <strong style="font-size:1.05rem;">🔍 Relatório e Memória de Cálculo</strong><br><br>
+                    <strong>1. Avaliação de Pontos (Col H):</strong><br>Defesa (${ultimoCalculo.detalhes.hDefesa}) + Partes (${ultimoCalculo.detalhes.hPartes.toFixed(1)}) + Réu Preso (${ultimoCalculo.detalhes.hPreso}) + Tipo Penal: ${ultimoCalculo.detalhes.crimeNome} (${ultimoCalculo.detalhes.crimePts}) = <strong>${ultimoCalculo.H.toFixed(1)} pontos</strong><br><br>
+                    <strong>2. Enquadramento de Complexidade (Col I):</strong><br>O sistema enquadra em: <strong>${ultimoCalculo.complex}</strong><br><br>
+                    <strong>3. Formação do Tempo Bruto (Col K):</strong><br>Tempo Base (${ultimoCalculo.detalhes.baseTempo} min) + Oitivas (${ultimoCalculo.detalhes.kPartes} min) + Bônus Def. Constituída (${ultimoCalculo.detalhes.kDefesa} min) + Bônus Réu Preso (${ultimoCalculo.detalhes.kPreso} min) + Adicional Livre (${ultimoCalculo.detalhes.tAdicional} min) + Constante (${getCfg('cfg-t-fixo')} min)${txtDesconto} = <strong>${ultimoCalculo.kOriginal} minutos</strong><br><br>
+                    <strong>4. Ajuste Oficial (Arredondamento Pautal):</strong><br>Aproximado para o múltiplo de 5 (finais 0 a 2 arredondam para baixo; 3 a 7 fixam no 5; 8 e 9 arredondam para cima), resultando em <strong>${ultimoCalculo.K} minutos finais.</strong>
+                `;
+                box.style.display = 'block';
+            }
+        }
+
+        function iniciarSalvamentoNaPauta() {
+            let dataInput = document.getElementById('data_pauta_calc').value;
+            if(!dataInput) return mostrarModal('Atenção', "Por favor, selecione a Data da Audiência no campo acima.", 'warning', false);
+            if(!ultimoCalculo) return mostrarModal('Atenção', "Calcule o tempo primeiro.", 'warning', false);
+
+            let procNome = document.getElementById('processo').value.trim();
+            
+            if (procNome) {
+                let duplicadoData = null;
+                for(let data in todasPautas) {
+                    if (todasPautas[data].some(p => p.proc.toLowerCase() === procNome.toLowerCase())) {
+                        duplicadoData = data; break;
+                    }
+                }
+                
+                if (duplicadoData) {
+                    mostrarModal('⚠️ Processo Duplicado', `O processo ${procNome} já possui uma audiência marcada para o dia ${formatarDataBR(duplicadoData)}.\n\nDeseja agendá-lo novamente para o dia ${formatarDataBR(dataInput)}?`, 'warning', true, () => {
+                        efetivarSalvamento(dataInput);
+                    });
+                    return; 
+                }
+            }
+            efetivarSalvamento(dataInput);
+        }
+
+        function efetivarSalvamento(dataInput) {
+            if(dataInput !== dataAtualPauta) mudarDataGlobal(dataInput); 
+            pautaSalva.push({...ultimoCalculo});
+            aplicarOrdenacaoGeral();
+
+            document.getElementById('processo').value = ""; document.getElementById('reus').value = "1";
+            document.getElementById('vitimas').value = "1"; document.getElementById('testemunhas').value = "0";
+            document.getElementById('adicional').value = "0"; document.getElementById('resultado').style.display = 'none';
+            ultimoCalculo = null;
+
+            salvarPautasStorage(); renderizarPauta(); 
+            
+            const btn = document.querySelector('.btn-save'); const txt = btn.innerText;
+            btn.innerText = "✓ Adicionado!"; btn.style.background = "#059669";
+            setTimeout(() => { btn.innerText = txt; btn.style.background = "var(--success)"; }, 1500);
+        }
+
+        function aplicarOrdenacaoGeral() {
+            if (ordemManualAtiva) return;
+            const regra = document.getElementById('cfg-ordem-pauta').value;
+            if (regra === 'simples_complexa') pautaSalva.sort((a, b) => a.H - b.H);
+            else if (regra === 'agrupar_crime') {
+                pautaSalva.sort((a, b) => {
+                    let cA = a.detalhes.crimeNome.toLowerCase(); let cB = b.detalhes.crimeNome.toLowerCase();
+                    if (cA < cB) return -1; if (cA > cB) return 1; return a.H - b.H;
+                });
+            }
+        }
+
+        function forcarOrdenacaoAutomatica() { ordemManualAtiva = false; aplicarOrdenacaoGeral(); salvarPautasStorage(); renderizarPauta(); }
+
+        function moverItem(index, direcao) {
+            if (index + direcao < 0 || index + direcao >= pautaSalva.length) return;
+            let temp = pautaSalva[index]; pautaSalva[index] = pautaSalva[index + direcao]; pautaSalva[index + direcao] = temp;
+            ordemManualAtiva = true; salvarPautasStorage(); renderizarPauta();
+        }
+
+        function atualizarEstatisticas() {
+            if(!dataAtualPauta) return;
+            const [ano, mes, dia] = dataAtualPauta.split('-');
+            const prefixoMes = `${ano}-${mes}`;
+            const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            document.getElementById('stats-mes-nome').innerText = `${nomesMeses[parseInt(mes)-1]} de ${ano}`;
+
+            let totalAudiencias = 0; let totalMinutos = 0; let contagemCrimes = {};
+            for(let data in todasPautas) {
+                if(data.startsWith(prefixoMes)) {
+                    todasPautas[data].forEach(proc => {
+                        totalAudiencias++; totalMinutos += proc.K;
+                        let cNome = proc.detalhes.crimeNome;
+                        contagemCrimes[cNome] = (contagemCrimes[cNome] || 0) + 1;
+                    });
+                }
+            }
+
+            let horas = Math.floor(totalMinutos / 60); let mins = totalMinutos % 60;
+            document.getElementById('stat-audiencias').innerText = totalAudiencias;
+            document.getElementById('stat-horas').innerText = `${horas}h` + (mins > 0 ? ` ${mins}m` : '');
+
+            let sortedCrimes = Object.keys(contagemCrimes).sort((a,b) => contagemCrimes[b] - contagemCrimes[a]);
+            let top3 = sortedCrimes.slice(0, 3);
+            let maxCount = top3.length > 0 ? contagemCrimes[top3[0]] : 1;
+            
+            let htmlChart = '<div class="mini-chart">';
+            top3.forEach(c => {
+                let count = contagemCrimes[c]; let pct = (count / maxCount) * 100;
+                htmlChart += `<div class="chart-row"><div class="chart-label" title="${c}">${c}</div><div style="display:flex; align-items:center; width:55%; gap:8px;"><div class="chart-bar-container" style="flex-grow:1;"><div class="chart-bar-fill" style="width: ${pct}%;"></div></div><span class="chart-count-label">${count}</span></div></div>`;
+            });
+            if(top3.length === 0) htmlChart += '<div style="color:#cbd5e1; font-size:0.85rem; text-align:center; padding-top:10px;">Sem audiências neste mês</div>';
+            htmlChart += '</div>';
+            document.getElementById('stat-crime-chart').innerHTML = htmlChart;
+        }
+
+        function atualizarDuracao(index, val) {
+            let novaDuracao = parseInt(val);
+            if (isNaN(novaDuracao) || novaDuracao < 0) novaDuracao = 0;
+            pautaSalva[index].K = novaDuracao;
+            salvarPautasStorage();
+            renderizarPauta();
+        }
+
+        function renderizarPauta() {
+            let htmlPauta = ""; let htmlExcedentes = "";
+            const horaInicioStr = document.getElementById('cfg-hora-inicio').value;
+            const horaFimStr = document.getElementById('cfg-hora-fim').value;
+            
+            let currentTime = timeToMinutes(horaInicioStr); 
+            const limitTime = timeToMinutes(horaFimStr);
+
+            document.getElementById('pauta-header-title').innerText = `Pauta Estruturada - ${formatarDataBR(dataAtualPauta)} (Início às ${horaInicioStr}h)`;
+
+            pautaSalva.forEach((item, index) => {
+                let horaFormatada = minutesToTime(currentTime);
+                let horaFim = minutesToTime(currentTime + item.K);
+
+                let cardActions = `
+                    <div class="card-actions">
+                        <button class="btn-small btn-move" onclick="moverItem(${index}, -1)" title="Subir">⬆️</button>
+                        <button class="btn-small btn-move" onclick="moverItem(${index}, 1)" title="Descer">⬇️</button>
+                        <button class="btn-small btn-google" onclick="adicionarAoGoogle('${dataAtualPauta}', '${horaFormatada}', '${horaFim}', ${index})" title="Agenda Google">🗓️ Agenda</button>
+                        <button class="btn-small btn-minuta" onclick="abrirModalMinuta(${index}, '${horaFormatada}')" title="Gerar Minuta de Despacho/Decisão">📝 Minuta</button>
+                        <button class="btn-small btn-cumprimento" onclick="abrirModalCumprimento(${index}, '${horaFormatada}')" title="Painel de Cumprimentos e Expedientes">✅ Cumprimento</button>
+                        <button class="btn-small btn-remove" onclick="removerItem('${item.id}')" title="Excluir">✕</button>
+                    </div>
+                `;
+
+                let cardConteudo = `
+                    <ul>
+                        <li><strong>Duração Estimada:</strong> <input type="number" value="${item.K}" onchange="atualizarDuracao(${index}, this.value)" title="Edite os minutos deste processo. Toda a pauta ajustará os horários automaticamente." style="width: 60px; padding: 2px 4px; text-align: center; font-weight: bold; color: var(--danger); border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg);"> min</li>
+                        <li><strong>Modalidade:</strong> ${item.detalhes.tipoAudiencia}</li>
+                        <li><strong>Tipo Penal Principal:</strong> ${item.detalhes.crimeNome}</li>
+                        <li><strong>Complexidade:</strong> ${item.complex.replace('Nível: ','')}</li>
+                        <li><strong>Defesa / Status:</strong> ${item.detalhes.defesa} / Réu Preso: ${item.detalhes.hPreso > 0 ? 'Sim' : 'Não'}</li>
+                        <li><strong>Oitivas:</strong> ${item.detalhes.nReus} Réu(s), ${item.detalhes.nTestemunhas} Testemunha(s), ${item.detalhes.nVitimas} Vítima(s)</li>
+                    </ul>
+                `;
+
+                let htmlBloco = `
+                    <div class="pauta-item ${currentTime > limitTime ? 'excedente-card' : ''}" 
+                         draggable="true" 
+                         ondragstart="dragStart(event, ${index})" 
+                         ondragend="dragEnd(event)" 
+                         ondragover="dragOver(event)" 
+                         ondrop="dropItem(event, ${index})">
+                        ${cardActions}
+                        <h4>${currentTime > limitTime ? '⚠️ [EXCEDENTE] - ' : '['+horaFormatada+'] - '}Processo: ${item.proc} ${currentTime > limitTime ? `<span style="font-size:0.85rem; color:var(--danger); opacity:0.8; font-weight:normal;">(Iniciaria às ${horaFormatada})</span>` : ''}</h4>
+                        ${cardConteudo}
+                    </div>
+                `;
+
+                if (currentTime <= limitTime) htmlPauta += htmlBloco; 
+                else htmlExcedentes += htmlBloco;
+                
+                currentTime += item.K; 
+            });
+
+            document.getElementById('lista-pauta').innerHTML = htmlPauta || '<p style="text-align:center; color:var(--text-muted); padding: 40px 0;">Nenhuma audiência marcada para este dia.<br>Use o separador Nova Designação.</p>';
+            
+            const excContainer = document.getElementById('excedentes-container');
+            if (htmlExcedentes !== "") { excContainer.style.display = 'block'; document.getElementById('lista-excedentes').innerHTML = htmlExcedentes; } 
+            else { excContainer.style.display = 'none'; }
+            
+            document.getElementById('count-pauta').innerText = pautaSalva.length;
+            atualizarEstatisticas();
+        }
+
+        // === INTEGRAÇÃO GOOGLE E ICS ===
+        function adicionarAoGoogle(data, horaIn, horaFim, index) {
+            const item = pautaSalva[index];
+            const dt = data.replace(/-/g, ''); 
+            const hrStart = dt + 'T' + horaIn.replace(':', '') + '00'; 
+            const hrEnd = dt + 'T' + horaFim.replace(':', '') + '00';
+            const descricao = `Modalidade: ${item.detalhes.tipoAudiencia}\nTipo Penal: ${item.detalhes.crimeNome}\nComplexidade: ${item.complex}\nOitivas: ${item.detalhes.nReus} Réus, ${item.detalhes.nVitimas} Vítimas, ${item.detalhes.nTestemunhas} Testemunhas\nDefesa: ${item.detalhes.defesa}\nTempo Previsto: ${item.K} min`;
+            const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=Processo+${encodeURIComponent(item.proc)}&dates=${hrStart}/${hrEnd}&details=${encodeURIComponent(descricao)}&sf=true&output=xml`;
+            window.open(url, '_blank');
+        }
+
+        function exportarICS() {
+            if(!dataAtualPauta) { return mostrarModal('Erro', "Nenhuma data selecionada.", 'warning', false); }
+            if(pautaSalva.length === 0) { return mostrarModal('Erro', "A pauta da data selecionada está vazia.", 'warning', false); }
+            
+            let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//TJES//Gestor de Pauta//PT\nCALSCALE:GREGORIAN\n";
+            let currentTime = timeToMinutes(document.getElementById('cfg-hora-inicio').value);
+            const dt = dataAtualPauta.replace(/-/g, '');
+
+            pautaSalva.forEach(item => {
+                let hStart = minutesToTime(currentTime).replace(':', '') + '00';
+                currentTime += item.K;
+                let hEnd = minutesToTime(currentTime).replace(':', '') + '00';
+                let desc = `Modalidade: ${item.detalhes.tipoAudiencia}\\nTipo Penal: ${item.detalhes.crimeNome}\\nOitivas: ${item.detalhes.nReus}R, ${item.detalhes.nVitimas}V, ${item.detalhes.nTestemunhas}T\\nTempo: ${item.K} min`;
+                icsContent += `BEGIN:VEVENT\nSUMMARY:Processo ${item.proc}\nDTSTART:${dt}T${hStart}\nDTEND:${dt}T${hEnd}\nDESCRIPTION:${desc}\nEND:VEVENT\n`;
+            });
+
+            icsContent += "END:VCALENDAR";
+            const blob = new Blob([icsContent], {type: 'text/calendar;charset=utf-8'});
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `pauta_tjes_${dataAtualPauta}.ics`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        function copiarParaAreaDeTransferencia() {
+            if(pautaSalva.length === 0) return mostrarModal('Aviso', 'A pauta deste dia está vazia. Não há o que copiar.', 'warning', false);
+            
+            let tabelaHTML = `<table border="1" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif;">
+                <tr style="background-color: #0A2540; color: white;">
+                    <th style="padding: 8px;">Horário</th>
+                    <th style="padding: 8px;">Processo</th>
+                    <th style="padding: 8px;">Ato / Modalidade</th>
+                    <th style="padding: 8px;">Tipo Penal</th>
+                    <th style="padding: 8px;">Duração Estimada</th>
+                </tr>`;
+            
+            let currentTime = timeToMinutes(document.getElementById('cfg-hora-inicio').value);
+            
+            pautaSalva.forEach(item => {
+                let horaFormatada = minutesToTime(currentTime);
+                tabelaHTML += `<tr>
+                    <td style="padding: 8px; text-align: center;"><b>${horaFormatada}</b></td>
+                    <td style="padding: 8px;">${item.proc}</td>
+                    <td style="padding: 8px;">${item.detalhes.tipoAudiencia}</td>
+                    <td style="padding: 8px;">${item.detalhes.crimeNome}</td>
+                    <td style="padding: 8px; text-align: center;">${item.K} min</td>
+                </tr>`;
+                currentTime += item.K;
+            });
+            tabelaHTML += `</table>`;
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = tabelaHTML;
+            tempDiv.style.position = 'absolute'; tempDiv.style.left = '-9999px';
+            document.body.appendChild(tempDiv);
+
+            const range = document.createRange(); range.selectNode(tempDiv);
+            window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+
+            try {
+                document.execCommand('copy');
+                mostrarModal('Sucesso', '📋 Pauta copiada com sucesso!\nPode usar Ctrl+V no Word ou Excel para colar a tabela.', 'success', false);
+            } catch (err) {
+                mostrarModal('Erro', 'Erro ao copiar a pauta. O seu navegador pode não suportar esta ação.', 'danger', false);
+            }
+
+            window.getSelection().removeAllRanges(); document.body.removeChild(tempDiv);
+        }
+    </script>
+</body>
+</html>
